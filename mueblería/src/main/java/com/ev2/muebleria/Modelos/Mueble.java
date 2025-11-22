@@ -1,12 +1,16 @@
 package com.ev2.muebleria.Modelos;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue;
+
 @Entity
-@Table(name = "mueble")
+@Table(name = "Mueble")
 public class Mueble {
     
     @Id
@@ -47,10 +51,10 @@ public class Mueble {
     public void setTipo(String tipo) {
         this.tipo = tipo;
     }
-    public String getPrecio_base() {
+    public Double getPrecio_base() {
         return precio_base;
     }
-    public void setPrecio_base(String precio_base) {
+    public void setPrecio_base(Double precio_base) {
         this.precio_base = precio_base;
     }
     public Integer getStock() {
@@ -77,11 +81,5 @@ public class Mueble {
     public void setDimension(DimensionMueble dimension) {
         this.dimension = dimension;
     }
-
-
-
-    
-
-
 
 }
