@@ -1,6 +1,8 @@
 package com.ev2.muebleria.Servicios;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,14 @@ public class CotizacionService {
 
         cotizacion.setTotal(totalCalculado);
         return cotizacionRepository.save(cotizacion);
+    }
+
+    public List<Cotizacion> listarTodas() {
+        return cotizacionRepository.findAll();
+    }
+
+    public Optional<Cotizacion> obtenerPorId(Long id) {
+        return cotizacionRepository.findById(id);
     }
 
     @Transactional //Si salta un error a mitad, deshace los cambios en BD
