@@ -20,7 +20,7 @@ public class CotizacionService {
     @Autowired
     private MuebleRepository muebleRepository; // Para validar stock después
 
-    @Transactional // Importante: si falla algo, no guarda nada (Atomicidad)
+    @Transactional 
     public Cotizacion crearCotizacion(Cotizacion cotizacion) {
         cotizacion.setFecha_cotizacion(LocalDateTime.now());
         cotizacion.setEstado(EstadoCotizacionEnum.valueOf("PENDIENTE".toUpperCase())); // Estado inicial
@@ -29,15 +29,16 @@ public class CotizacionService {
 
 
         for (DetalleCotizacion detalle : cotizacion.getDetalles()) {
-            //Vinculamos el hijo al padre (Java lo necesita explícitamente)
             detalle.setCotizacion(cotizacion);
             totalCalculado += detalle.getSubtotal();
         }
 
         cotizacion.setTotal(totalCalculado);
-
-        // Al guardar el Padre, se guardan los Hijos (si usaste CascadeType.ALL en la entidad)
         return cotizacionRepository.save(cotizacion);
     }
+
+    
+
+
 
 }
