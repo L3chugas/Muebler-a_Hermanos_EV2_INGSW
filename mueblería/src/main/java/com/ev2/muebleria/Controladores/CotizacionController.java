@@ -30,7 +30,7 @@ public class CotizacionController {
 
     //Obtener una cotización específica por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Cotizacion> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<Cotizacion> obtenerPorId(@PathVariable("id") Long id) {
         Optional<Cotizacion> cotizacion = cotizacionService.obtenerPorId(id);
         
         //Si existe, retorna 200 OK con el objeto. Si no, 404 Not Found.
@@ -50,7 +50,7 @@ public class CotizacionController {
     
 
     @PostMapping("/{id}/confirmar")
-    public ResponseEntity<?> confirmarVenta(@PathVariable Long id) {
+    public ResponseEntity<?> ventaConfirmar(@PathVariable("id") Long id) {
         try {
             Cotizacion ventaConfirmada = cotizacionService.confirmarVenta(id);
             return ResponseEntity.ok(ventaConfirmada);

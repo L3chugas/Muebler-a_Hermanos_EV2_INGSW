@@ -10,7 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 
 @Entity
-@Table(name = "Mueble")
+@Table(name = "mueble")
 public class Mueble {
     
     @Id
@@ -28,6 +28,7 @@ public class Mueble {
     private String material;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "tamano")
     private DimensionMueble dimension;
 
     public Mueble() {

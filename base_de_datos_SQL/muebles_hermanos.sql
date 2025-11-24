@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 22-11-2025 a las 21:33:17
+-- Tiempo de generación: 24-11-2025 a las 17:07:56
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -29,10 +29,17 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `cotizacion` (
   `id_contizacion` bigint(20) NOT NULL,
-  `fecha` datetime DEFAULT current_timestamp(),
-  `total` double DEFAULT 0,
-  `estado` varchar(20) DEFAULT NULL
+  `fecha_cotizacion` datetime DEFAULT current_timestamp(),
+  `calculo_total` double DEFAULT 0,
+  `estado_cotizacion` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `cotizacion`
+--
+
+INSERT INTO `cotizacion` (`id_contizacion`, `fecha_cotizacion`, `calculo_total`, `estado_cotizacion`) VALUES
+(2, '2025-11-24 12:36:51', 0, 'PENDIENTE');
 
 -- --------------------------------------------------------
 
@@ -49,6 +56,13 @@ CREATE TABLE `detalle_cotizacion` (
   `variante_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `detalle_cotizacion`
+--
+
+INSERT INTO `detalle_cotizacion` (`id_detalle_cotiz`, `cantidad`, `subtotal`, `cotizacion_id`, `mueble_id`, `variante_id`) VALUES
+(2, 2, 240000, 2, 1, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -57,14 +71,25 @@ CREATE TABLE `detalle_cotizacion` (
 
 CREATE TABLE `mueble` (
   `id_mueble` bigint(20) NOT NULL,
-  `nombre_mueble` varchar(100) NOT NULL,
-  `tipo` varchar(50) DEFAULT NULL,
+  `nombre_mueble` varchar(255) NOT NULL,
+  `tipo` varchar(255) DEFAULT NULL,
   `precio_base` double NOT NULL,
   `stock` int(11) NOT NULL DEFAULT 0,
   `estado_activo` tinyint(1) DEFAULT 1,
   `tamano` varchar(20) DEFAULT NULL,
-  `material` varchar(50) DEFAULT NULL
+  `material` varchar(255) DEFAULT NULL,
+  `dimension` enum('GRANDE','MEDIANO','PEQUEÑO') DEFAULT NULL,
+  `nombre` varchar(255) NOT NULL,
+  `tipo_mueble` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `mueble`
+--
+
+INSERT INTO `mueble` (`id_mueble`, `nombre_mueble`, `tipo`, `precio_base`, `stock`, `estado_activo`, `tamano`, `material`, `dimension`, `nombre`, `tipo_mueble`) VALUES
+(1, 'Silla Clásica', 'Silla', 15000, 5, 1, 'MEDIANO', 'Madera', NULL, '', NULL),
+(2, 'Mesa Comedor', 'Mesa', 80000, 2, 1, 'GRANDE', 'Roble', NULL, '', NULL);
 
 -- --------------------------------------------------------
 
@@ -74,9 +99,22 @@ CREATE TABLE `mueble` (
 
 CREATE TABLE `variante` (
   `id_variante` bigint(20) NOT NULL,
-  `nombre_variante` varchar(100) NOT NULL,
+  `nombre_variante` varchar(255) DEFAULT NULL,
   `precio_adicional` double NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `variante`
+--
+
+INSERT INTO `variante` (`id_variante`, `nombre_variante`, `precio_adicional`) VALUES
+(1, 'Sin Variantes', 0),
+(2, 'Barniz Premium', 15000),
+(3, 'Cojines de Seda', 25000),
+(4, 'Ruedas de Alto Tráfico', 5000),
+(5, 'Tapiz de Cuero', 45000),
+(6, 'Manillas Doradas', 3500),
+(7, 'Vidrio Templado', 12000);
 
 --
 -- Índices para tablas volcadas
@@ -117,25 +155,25 @@ ALTER TABLE `variante`
 -- AUTO_INCREMENT de la tabla `cotizacion`
 --
 ALTER TABLE `cotizacion`
-  MODIFY `id_contizacion` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_contizacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `detalle_cotizacion`
 --
 ALTER TABLE `detalle_cotizacion`
-  MODIFY `id_detalle_cotiz` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_detalle_cotiz` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `mueble`
 --
 ALTER TABLE `mueble`
-  MODIFY `id_mueble` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_mueble` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `variante`
 --
 ALTER TABLE `variante`
-  MODIFY `id_variante` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_variante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Restricciones para tablas volcadas

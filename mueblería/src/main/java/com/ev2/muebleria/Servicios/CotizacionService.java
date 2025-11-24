@@ -62,19 +62,34 @@ public class CotizacionService {
         }
 
         //Recorrer los detalles para validar y descontar stock
-        for (DetalleCotizacion detalle : cotizacion.getDetalles()) {
-            Mueble mueble = detalle.getMueble();
-            int cantidadSolicitada = detalle.getCantidad();
+        if (cotizacion.getDetalles() == null) {
+            throw new RuntimeException("La cotización no contiene detalles");
+        }
 
-            //Validar Stock 
-            if (mueble.getStock() < cantidadSolicitada) {
-                // Esto detiene el proceso y envía el mensaje de error exacto
+        for (DetalleCotizacion detalle : cotizacion.getDetalles()) {
+            Mueble muebleRef = detalle.getMueble();
+            if (muebleRef == null || muebleRef.getId_mueble() == null) {
+                throw new RuntimeException("Detalle sin mueble asociado (id ausente)");
+            }
+
+            // Recuperar entidad gestionada desde el repositorio para evitar NPEs o datos desactualizados
+            Mueble mueble = muebleRepository.findById(muebleRef.getId_mueble()).orElse(null);
+            // Si no se encuentra en el repo, intentamos usar el objeto que viene en el detalle (útil para mocks/tests)
+            if (mueble == null) {
+                mueble = muebleRef;
+            }
+
+            Integer stockActual = mueble.getStock();
+            int cantidadSolicitada = detalle.getCantidad() == null ? 0 : detalle.getCantidad();
+
+            //Validar Stock (tratar stock nulo como 0)
+            if (stockActual == null || stockActual < cantidadSolicitada) {
                 throw new StockInsuficienteException("Stock insuficiente para el mueble: " + mueble.getNombre());
             }
 
             //Decrementar Stock 
-            mueble.setStock(mueble.getStock() - cantidadSolicitada);
-            
+            mueble.setStock(stockActual - cantidadSolicitada);
+
             //Se guarda el mueble con el nuevo stock
             muebleRepository.save(mueble);
         }

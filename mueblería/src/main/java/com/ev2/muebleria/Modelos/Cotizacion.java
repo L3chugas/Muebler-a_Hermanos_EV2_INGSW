@@ -12,17 +12,26 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 
 @Entity
+@Table(name = "cotizacion")
 public class Cotizacion {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_contizacion")
     private Long id_cotizacion;
-    
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "estado_cotizacion")
     private EstadoCotizacionEnum estado;
+
+    @Column(name = "fecha_cotizacion")
     private LocalDateTime fecha_cotizacion;
+
+    @Column(name = "calculo_total")
     private Double calculoTotal;
 
     @OneToMany(mappedBy = "cotizacion", cascade = CascadeType.ALL)
