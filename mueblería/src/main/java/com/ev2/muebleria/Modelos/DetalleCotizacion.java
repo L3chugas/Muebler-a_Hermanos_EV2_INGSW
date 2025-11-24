@@ -7,6 +7,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 
 @Entity
@@ -24,6 +27,7 @@ public class DetalleCotizacion {
     // Relación: Muchos detalles pertenecen a una cotización
     @ManyToOne
     @JoinColumn(name = "cotizacion_id") // Nombre de la columna FK en MySQL
+    @JsonIgnore
     private Cotizacion cotizacion;
 
     // Relación: Muchos detalles pueden apuntar a un mueble

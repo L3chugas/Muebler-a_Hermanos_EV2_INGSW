@@ -13,6 +13,8 @@ import com.ev2.muebleria.Servicios.CotizacionService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.Collections;
 import com.ev2.muebleria.Modelos.Cotizacion;
 import com.ev2.muebleria.Servicios.StockInsuficienteException;
 
@@ -50,16 +52,20 @@ public class CotizacionController {
     
 
     @PostMapping("/{id}/confirmar")
-    public ResponseEntity<?> ventaConfirmar(@PathVariable("id") Long id) {
-        try {
-            Cotizacion ventaConfirmada = cotizacionService.confirmarVenta(id);
-            return ResponseEntity.ok(ventaConfirmada);
-        } catch (StockInsuficienteException e) {
-        //Retorna error 400 (Bad Request) con el mensaje "stock insuficiente"
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al procesar la venta");
-        }
-
+public ResponseEntity<?> confirmarVenta(@PathVariable("id") Long id) {
+    try {
+        Cotizacion ventaConfirmada = cotizacionService.confirmarVenta(id);
+        return ResponseEntity.ok(ventaConfirmada);
+        
+    } catch (StockInsuficienteException e) {
+        // SOLUCIÓN: Crear un mapa para que salga como JSON { "error": "mensaje..." }
+        Map<String, String> respuestaError = Collections.singletonMap("error", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuestaError);
+        
+    } catch (Exception e) {
+        e.printStackTrace(); // Para ver el error en consola si es grave
+        Map<String, String> respuestaError = Collections.singletonMap("error", "Error interno: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
     }
+}
 }
