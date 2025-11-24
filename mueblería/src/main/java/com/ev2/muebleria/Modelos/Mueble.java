@@ -17,9 +17,10 @@ public class Mueble {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_mueble;
 
-    @Column(nullable = false) // Para que no permita nulos
+    @Column(name = "nombre_mueble", nullable = false)
     private String nombre;
 
+    @Column(name = "tipo_mueble")
     private String tipo;
     private Double precio_base;
     private Integer stock;

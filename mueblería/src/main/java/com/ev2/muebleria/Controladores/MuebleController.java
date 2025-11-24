@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/muebles")
+@RequestMapping("/api/muebles")
 public class MuebleController {
 
     @Autowired
@@ -26,7 +26,7 @@ public class MuebleController {
     }
 
     @PostMapping
-    public ResponseEntity<Mueble> crearMueble(Mueble mueble) {
+    public ResponseEntity<Mueble> crearMueble(@RequestBody Mueble mueble) {
         Mueble nuevoMueble = muebleService.crearMueble(mueble);
         return ResponseEntity.ok(nuevoMueble);
     }   
