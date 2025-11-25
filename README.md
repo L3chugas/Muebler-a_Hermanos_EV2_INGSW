@@ -33,7 +33,6 @@ Asegúrese de tener instalado:
 1.  Abra XAMPP y activar los modulos de Apache y MySQL
 2.  Ingrese a phpMyAdmin de forma local
 3.  Importe el archivo “mebles_hermanos.sql” con tal de obtener la base de datos
-4.  Con tal de tener 
 
 ### 3. Ejecutar la Aplicación
 1.  Extraiga el archivo “Muebleria_Hermanos_EV2_INGSW.rar”
