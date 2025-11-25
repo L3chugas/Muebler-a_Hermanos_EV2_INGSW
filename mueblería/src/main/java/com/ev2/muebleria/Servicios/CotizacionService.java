@@ -22,6 +22,8 @@ public class CotizacionService {
     private CotizacionRepository cotizacionRepository;
     @Autowired
     private MuebleRepository muebleRepository; //Para validar stock después
+    @Autowired
+    private PrecioService precioService;
 
     @Transactional 
     public Cotizacion crearCotizacion(Cotizacion cotizacion) {
@@ -30,10 +32,22 @@ public class CotizacionService {
         
         double totalCalculado = 0.0;
 
-
         for (DetalleCotizacion detalle : cotizacion.getDetalles()) {
             detalle.setCotizacion(cotizacion);
-            totalCalculado += detalle.getSubtotal();
+
+            // Intentar recuperar precio final (mueble + variante), usando PrecioService
+            Long idMueble = detalle.getMueble() != null ? detalle.getMueble().getId_mueble() : null;
+            Long idVariante = detalle.getVariante() != null ? detalle.getVariante().getId_variante() : null;
+            Double precioFinal = null;
+            if (idMueble != null) {
+                precioFinal = precioService.calcularPrecioFinal(idMueble, idVariante);
+            }
+            if (precioFinal == null) precioFinal = 0.0;
+
+            int cantidad = detalle.getCantidad() == null ? 0 : detalle.getCantidad();
+            double subtotal = precioFinal * cantidad;
+            detalle.setSubtotal(subtotal);
+            totalCalculado += subtotal;
         }
 
         cotizacion.setTotal(totalCalculado);

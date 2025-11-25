@@ -1,6 +1,7 @@
 package com.ev2.muebleria;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -32,6 +33,8 @@ public class CotizacionServiceUnitTest {
 
     @Mock
     private MuebleRepository muebleRepository;
+        @Mock
+        private com.ev2.muebleria.Servicios.PrecioService precioService;
 
     @InjectMocks
     private CotizacionService cotizacionService;
@@ -65,6 +68,41 @@ public class CotizacionServiceUnitTest {
 
         // Verificar que no se guardó ningún mueble (porque se detuvo antes)
         verify(muebleRepository, never()).save(any());
+    }
+
+    @Test
+    void crearCotizacion_calculaSubtotalYTotal() {
+        // Preparar mueble y variante
+        Mueble silla = new Mueble();
+        silla.setId_mueble(1L);
+        silla.setNombre("Silla Mock");
+        silla.setPrecio_base(100.0);
+
+        // Variente (sólo necesitamos id)
+        com.ev2.muebleria.Modelos.Variante variante = new com.ev2.muebleria.Modelos.Variante();
+        variante.setId_variante(1L);
+        variante.setNombre_variante("Premium");
+        variante.setPrecio_adicional(25.0);
+
+        // Detalle: cantidad 2
+        DetalleCotizacion detalle = new DetalleCotizacion();
+        detalle.setMueble(silla);
+        detalle.setCantidad(2);
+        detalle.setVariante(variante);
+
+        Cotizacion cotizacion = new Cotizacion();
+        cotizacion.setDetalles(List.of(detalle));
+
+        // Mocks: precioService devuelve 125.0 (100 + 25)
+        when(precioService.calcularPrecioFinal(1L, 1L)).thenReturn(125.0);
+        when(cotizacionRepository.save(any(Cotizacion.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Ejecutar
+        Cotizacion resultado = cotizacionService.crearCotizacion(cotizacion);
+
+        // Validaciones: subtotal 125*2 = 250; total 250
+        assertEquals(250.0, resultado.getDetalles().get(0).getSubtotal());
+        assertEquals(250.0, resultado.getCalculoTotal());
     }
 
 }
