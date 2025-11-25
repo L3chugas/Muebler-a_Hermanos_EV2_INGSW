@@ -40,13 +40,11 @@ public class MuebleService {
         }
     }
 
-
     @Transactional
     public Mueble actualizarMueble(Long id, Mueble mueble) {
         mueble.setId_mueble(id);
         return muebleRepository.save(mueble);
     }
-
 
     public void desactivarMueble(Long id) {
         Mueble mueble = muebleRepository.findById(id).orElseThrow();

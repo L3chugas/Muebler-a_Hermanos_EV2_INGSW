@@ -18,8 +18,8 @@ public class PrecioService {
     private VarianteRepository varianteRepository;
 
     /**
-     * Calcula el precio final dado el id de mueble y (opcional) id de variante.
-     * Si la variante no existe o es null, se devuelve solo el precio base.
+     Calcula el precio final dado el id de mueble y (opcional) id de variante.
+     Si la variante no existe o es null, se devuelve solo el precio base.
      */
     public Double calcularPrecioFinal(Long idMueble, Long idVariante) {
         Mueble mueble = muebleRepository.findById(idMueble).orElse(null);

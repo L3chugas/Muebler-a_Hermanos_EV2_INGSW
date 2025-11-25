@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 24-11-2025 a las 17:07:56
+-- Tiempo de generación: 25-11-2025 a las 01:14:58
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -39,7 +39,8 @@ CREATE TABLE `cotizacion` (
 --
 
 INSERT INTO `cotizacion` (`id_contizacion`, `fecha_cotizacion`, `calculo_total`, `estado_cotizacion`) VALUES
-(2, '2025-11-24 12:36:51', 0, 'PENDIENTE');
+(2, '2025-11-24 12:36:51', 0, 'PENDIENTE'),
+(10, '2025-11-24 13:37:27', 657000, 'PAGADA');
 
 -- --------------------------------------------------------
 
@@ -61,7 +62,9 @@ CREATE TABLE `detalle_cotizacion` (
 --
 
 INSERT INTO `detalle_cotizacion` (`id_detalle_cotiz`, `cantidad`, `subtotal`, `cotizacion_id`, `mueble_id`, `variante_id`) VALUES
-(2, 2, 240000, 2, 1, 1);
+(2, 2, 240000, 2, 1, 1),
+(11, 1, 395000, 10, 2, 5),
+(12, 1, 262000, 10, 2, 7);
 
 -- --------------------------------------------------------
 
@@ -78,8 +81,6 @@ CREATE TABLE `mueble` (
   `estado_activo` tinyint(1) DEFAULT 1,
   `tamano` varchar(20) DEFAULT NULL,
   `material` varchar(255) DEFAULT NULL,
-  `dimension` enum('GRANDE','MEDIANO','PEQUEÑO') DEFAULT NULL,
-  `nombre` varchar(255) NOT NULL,
   `tipo_mueble` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -87,9 +88,10 @@ CREATE TABLE `mueble` (
 -- Volcado de datos para la tabla `mueble`
 --
 
-INSERT INTO `mueble` (`id_mueble`, `nombre_mueble`, `tipo`, `precio_base`, `stock`, `estado_activo`, `tamano`, `material`, `dimension`, `nombre`, `tipo_mueble`) VALUES
-(1, 'Silla Clásica', 'Silla', 15000, 5, 1, 'MEDIANO', 'Madera', NULL, '', NULL),
-(2, 'Mesa Comedor', 'Mesa', 80000, 2, 1, 'GRANDE', 'Roble', NULL, '', NULL);
+INSERT INTO `mueble` (`id_mueble`, `nombre_mueble`, `tipo`, `precio_base`, `stock`, `estado_activo`, `tamano`, `material`, `tipo_mueble`) VALUES
+(1, 'Silla Clásica', 'Silla', 15000, 5, 1, 'MEDIANO', 'Madera', NULL),
+(2, 'Mesa Comedor', 'Mesa', 80000, 0, 1, 'GRANDE', 'Roble', NULL),
+(3, 'mesedora marca acme', NULL, 60000, 5, 1, 'GRANDE', 'Madera', 'Mesedora');
 
 -- --------------------------------------------------------
 
@@ -155,19 +157,19 @@ ALTER TABLE `variante`
 -- AUTO_INCREMENT de la tabla `cotizacion`
 --
 ALTER TABLE `cotizacion`
-  MODIFY `id_contizacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_contizacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `detalle_cotizacion`
 --
 ALTER TABLE `detalle_cotizacion`
-  MODIFY `id_detalle_cotiz` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_detalle_cotiz` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `mueble`
 --
 ALTER TABLE `mueble`
-  MODIFY `id_mueble` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_mueble` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `variante`

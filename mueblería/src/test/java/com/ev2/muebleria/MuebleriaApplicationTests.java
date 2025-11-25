@@ -1,4 +1,5 @@
 package com.ev2.muebleria;
+import com.ev2.muebleria.MuebleriaApplication;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -8,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import com.ev2.muebleria.Controladores.MuebleriaApplication;
 
 import com.ev2.muebleria.Modelos.Cotizacion;
 import com.ev2.muebleria.Modelos.DetalleCotizacion;

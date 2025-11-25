@@ -21,12 +21,12 @@ public class CotizacionService {
     @Autowired
     private CotizacionRepository cotizacionRepository;
     @Autowired
-    private MuebleRepository muebleRepository; // Para validar stock después
+    private MuebleRepository muebleRepository; //Para validar stock después
 
     @Transactional 
     public Cotizacion crearCotizacion(Cotizacion cotizacion) {
         cotizacion.setFecha_cotizacion(LocalDateTime.now());
-        cotizacion.setEstado(EstadoCotizacionEnum.valueOf("PENDIENTE".toUpperCase())); // Estado inicial
+        cotizacion.setEstado(EstadoCotizacionEnum.valueOf("PENDIENTE".toUpperCase())); //Estado inicial
         
         double totalCalculado = 0.0;
 
@@ -55,7 +55,7 @@ public class CotizacionService {
         Cotizacion cotizacion = cotizacionRepository.findById(cotizacionId)
                 .orElseThrow(() -> new RuntimeException("Cotización no encontrada"));
 
-        //Validar Estado (Patrón State simplificado)
+        //Validar Estado
         //Si ya está vendida, no permitir confirmar de nuevo
         if (EstadoCotizacionEnum.valueOf("PAGADA".toUpperCase()).equals(cotizacion.getEstado())) {
             throw new RuntimeException("Esta cotización ya fue procesada como venta.");
@@ -72,9 +72,9 @@ public class CotizacionService {
                 throw new RuntimeException("Detalle sin mueble asociado (id ausente)");
             }
 
-            // Recuperar entidad gestionada desde el repositorio para evitar NPEs o datos desactualizados
+            //Recupera  la entidad gestionada desde el repositorio para evitar datos desactualizados
             Mueble mueble = muebleRepository.findById(muebleRef.getId_mueble()).orElse(null);
-            // Si no se encuentra en el repo, intentamos usar el objeto que viene en el detalle (útil para mocks/tests)
+            //Si no se encuentra en el repo, intenta usar el objeto que viene en el detalle
             if (mueble == null) {
                 mueble = muebleRef;
             }
