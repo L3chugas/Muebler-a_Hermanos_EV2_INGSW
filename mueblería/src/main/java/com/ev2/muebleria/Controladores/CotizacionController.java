@@ -52,20 +52,20 @@ public class CotizacionController {
     
 
     @PostMapping("/{id}/confirmar")
-public ResponseEntity<?> confirmarVenta(@PathVariable("id") Long id) {
-    try {
-        Cotizacion ventaConfirmada = cotizacionService.confirmarVenta(id);
-        return ResponseEntity.ok(ventaConfirmada);
-        
-    } catch (StockInsuficienteException e) {
-        //Crear un mapa para que salga como JSON { "error": "mensaje..." } Aporte IA
-        Map<String, String> respuestaError = Collections.singletonMap("error", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuestaError);
-        
-    } catch (Exception e) {
-        e.printStackTrace(); //Ver el error en consola si es grave
-        Map<String, String> respuestaError = Collections.singletonMap("error", "Error interno: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
+    public ResponseEntity<?> confirmarVenta(@PathVariable("id") Long id) {
+        try {
+            Cotizacion ventaConfirmada = cotizacionService.confirmarVenta(id);
+            return ResponseEntity.ok(ventaConfirmada);
+            
+        } catch (StockInsuficienteException e) {
+            //Crear un mapa para que salga como JSON { "error": "mensaje..." } Aporte IA
+            Map<String, String> respuestaError = Collections.singletonMap("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(respuestaError);
+            
+        } catch (Exception e) {
+            e.printStackTrace(); //Ver el error en consola si es grave
+            Map<String, String> respuestaError = Collections.singletonMap("error", "Error interno: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
+        }
     }
-}
 }
