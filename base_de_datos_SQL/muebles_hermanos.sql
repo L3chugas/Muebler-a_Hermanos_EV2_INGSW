@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-11-2025 a las 04:15:42
+-- Tiempo de generación: 25-11-2025 a las 01:14:58
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -39,9 +39,8 @@ CREATE TABLE `cotizacion` (
 --
 
 INSERT INTO `cotizacion` (`id_contizacion`, `fecha_cotizacion`, `calculo_total`, `estado_cotizacion`) VALUES
-(2, '2025-11-24 12:36:51', 0, 'PAGADA'),
-(10, '2025-11-24 13:37:27', 657000, 'PAGADA'),
-(15, '2025-11-24 23:13:35', 135000, 'PENDIENTE');
+(2, '2025-11-24 12:36:51', 0, 'PENDIENTE'),
+(10, '2025-11-24 13:37:27', 657000, 'PAGADA');
 
 -- --------------------------------------------------------
 
@@ -65,9 +64,7 @@ CREATE TABLE `detalle_cotizacion` (
 INSERT INTO `detalle_cotizacion` (`id_detalle_cotiz`, `cantidad`, `subtotal`, `cotizacion_id`, `mueble_id`, `variante_id`) VALUES
 (2, 2, 240000, 2, 1, 1),
 (11, 1, 395000, 10, 2, 5),
-(12, 1, 262000, 10, 2, 7),
-(17, 2, 30000, 15, 1, 1),
-(18, 1, 105000, 15, 2, 3);
+(12, 1, 262000, 10, 2, 7);
 
 -- --------------------------------------------------------
 
@@ -92,10 +89,9 @@ CREATE TABLE `mueble` (
 --
 
 INSERT INTO `mueble` (`id_mueble`, `nombre_mueble`, `tipo`, `precio_base`, `stock`, `estado_activo`, `tamano`, `material`, `tipo_mueble`) VALUES
-(1, 'Silla Clásica', 'Silla', 15000, 3, 1, 'MEDIANO', 'Madera', NULL),
+(1, 'Silla Clásica', 'Silla', 15000, 5, 1, 'MEDIANO', 'Madera', NULL),
 (2, 'Mesa Comedor', 'Mesa', 80000, 0, 1, 'GRANDE', 'Roble', NULL),
-(3, 'mesedora marca acme', NULL, 60000, 5, 1, 'GRANDE', 'Madera', 'Mesedora'),
-(8, 'Silla de Comedor Clásica', NULL, 45000, 15, 1, 'MEDIANO', 'Madera de Roble', 'Silla');
+(3, 'mesedora marca acme', NULL, 60000, 5, 1, 'GRANDE', 'Madera', 'Mesedora');
 
 -- --------------------------------------------------------
 
@@ -120,8 +116,7 @@ INSERT INTO `variante` (`id_variante`, `nombre_variante`, `precio_adicional`) VA
 (4, 'Ruedas de Alto Tráfico', 5000),
 (5, 'Tapiz de Cuero', 45000),
 (6, 'Manillas Doradas', 3500),
-(7, 'Vidrio Templado', 12000),
-(8, 'Color Premium - Gris Oscuro', 15000);
+(7, 'Vidrio Templado', 12000);
 
 --
 -- Índices para tablas volcadas
@@ -162,25 +157,25 @@ ALTER TABLE `variante`
 -- AUTO_INCREMENT de la tabla `cotizacion`
 --
 ALTER TABLE `cotizacion`
-  MODIFY `id_contizacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_contizacion` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `detalle_cotizacion`
 --
 ALTER TABLE `detalle_cotizacion`
-  MODIFY `id_detalle_cotiz` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id_detalle_cotiz` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `mueble`
 --
 ALTER TABLE `mueble`
-  MODIFY `id_mueble` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_mueble` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `variante`
 --
 ALTER TABLE `variante`
-  MODIFY `id_variante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_variante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Restricciones para tablas volcadas

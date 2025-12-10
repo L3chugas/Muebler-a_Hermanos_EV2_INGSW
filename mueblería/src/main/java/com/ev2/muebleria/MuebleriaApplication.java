@@ -12,6 +12,7 @@ public class MuebleriaApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MuebleriaApplication.class, args);
+		System.out.println("Program started successfully");
 	}
 
 }
