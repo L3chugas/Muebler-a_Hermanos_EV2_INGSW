@@ -1,0 +1,46 @@
+services:
+  mysqldb:
+    image: mysql:8.0
+    container_name: mysqldb
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: muebles_hermanos
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "1025:1025" # Puerto SMTP (donde tu app envía correos)
+      - "8025:8025" # Puerto Web (donde tú ves los correos)
+
+  app:
+    build: .
+    container_name: muebleria-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysqldb
+      - mailhog
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/muebles_hermanos
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_USERNAME: ""
+      SPRING_MAIL_PASSWORD: ""
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
+
+  frontend:
+    image: nginx:alpine
+    container_name: muebleria-front
+    ports:
+      - "3000:80"
+    volumes:
+      - ../frontend:/usr/share/nginx/html
+
+volumes:
+  mysql_data:
