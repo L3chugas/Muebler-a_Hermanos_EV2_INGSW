@@ -127,6 +127,13 @@
         .action-edit{ background:#9fd7a8 }
         .action-del{ background:#6e5f6f; color:#fff }
         .action-confirm{ background:#2eaf4a; color:#fff }
+        
+        /* form styles */
+        .form-input{ padding:8px; border:1px solid #ddd; border-radius:4px; font-size:14px; font-family:inherit; }
+        .form-input:focus{ outline:2px solid #7b2bd4; outline-offset:-1px; }
+        .submit-btn:hover{ opacity:0.9; }
+        .cancel-btn:hover{ opacity:0.8; }
+        
         /* responsive */
         @media (max-width:980px){
             .content{ flex-direction:column; gap:22px; }
@@ -216,12 +223,27 @@
         </div>
     </div>
 
+    <!-- Cargar configuración de puerto dinámico generada por Java -->
+    <script src="env.js" onerror="console.log('Modo Docker o env.js no encontrado')"></script>
+
     <script>
         (function(){
             const panel = document.getElementById('panel');
             const panelTitle = document.getElementById('panel-title');
             const panelBody = document.getElementById('panel-body');
             const closeBtn = document.getElementById('panel-close');
+
+            // Función para detectar la URL del Backend automáticamente
+            function getBaseUrl() {
+                // MODO LOCAL: Si abres el archivo directo (file://) -> Usa el puerto dinámico de env.js
+                if (window.location.protocol === 'file:') {
+                    return 'http://localhost:' + (window.BACKEND_PORT || 8080);
+                }
+                // Si estás en un servidor o Docker, usa el mismo host pero puerto 8080
+                return window.location.protocol + '//' + window.location.hostname + ':8090';
+                // MODO DOCKER: Si estás en localhost:3000 -> Conecta al contenedor app (8080)
+                return window.location.protocol + '//' + window.location.hostname + ':8080';
+            }
 
             function openPanel(title, html){
                 panelTitle.textContent = title;
@@ -234,18 +256,55 @@
                 panel.setAttribute('aria-hidden','true');
             }
 
-            // handlers for cards
-            document.querySelectorAll('.card[role="button"]').forEach(el=>{
-                el.addEventListener('click', ()=>{
-                    const target = el.getAttribute('data-panel');
-                    if(target === 'muebles'){
-                        // prepare muebles HTML with purple create button
-                        const purple = getComputedStyle(document.documentElement).getPropertyValue('--purple').trim() || '#7b2bd4';
-                        panel.style.setProperty('--panel-accent', purple);
-                        const mueblesHtml = `
+            // function to build muebles table from API data
+            async function loadAndShowMuebles(){
+                const purple = getComputedStyle(document.documentElement).getPropertyValue('--purple').trim() || '#7b2bd4';
+                panel.style.setProperty('--panel-accent', purple);
+                
+                try {
+                    const baseUrl = getBaseUrl();
+                    const response = await fetch(baseUrl + '/api/muebles');
+                    
+                    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const muebles = await response.json();
+                    
+                    const rows = muebles.map(m => `
+                        <tr>
+                            <td>${m.id_mueble || 'N/A'}</td>
+                            <td>${m.nombre || ''}</td>
+                            <td>${m.tipo || ''}</td>
+                            <td>$${(m.precio_base || 0).toFixed(2)}</td>
+                            <td>${m.stock || 0}</td>
+                            <td><span class="pill">${m.activo ? '✓' : '✗'}</span></td>
+                            <td>${m.material || ''}</td>
+                            <td>
+                                <button class="action-btn action-del" data-id="${m.id_mueble}" data-action="delete">Eliminar</button>
+                                <button class="action-btn action-edit" data-id="${m.id_mueble}" data-action="edit">Editar</button>
+                            </td>
+                        </tr>`).join('\n');
+                    
+                    const mueblesHtml = `
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                             <div></div>
-                            <button class="create-btn--purple">Añadir Mueble</button>
+                            <button class="create-btn--purple" data-show="form-muebles">Crear Mueble</button>
+                        </div>
+                        <div id="form-muebles" style="display:none;background:#f9f9f9;padding:12px;border-radius:6px;margin-bottom:12px;border:1px solid #e0e0e0;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+                                <input type="text" class="form-input" placeholder="Nombre" data-field="nombre" />
+                                <input type="text" class="form-input" placeholder="Tipo" data-field="tipo" />
+                                <input type="number" class="form-input" placeholder="Precio Base" data-field="precio_base" step="0.01" />
+                                <input type="number" class="form-input" placeholder="Stock" data-field="stock" />
+                                <select class="form-input" data-field="activo">
+                                    <option value="true">Activo: Sí</option>
+                                    <option value="false">Activo: No</option>
+                                </select>
+                                <input type="text" class="form-input" placeholder="Material" data-field="material" />
+                            </div>
+                            <div style="display:flex;gap:8px;margin-top:12px;">
+                                <button class="submit-btn" data-action="submit-mueble" style="flex:1;background:#7b2bd4;color:white;border:none;padding:8px;border-radius:4px;cursor:pointer;">Guardar</button>
+                                <button class="cancel-btn" data-action="cancel" style="flex:1;background:#ccc;border:none;padding:8px;border-radius:4px;cursor:pointer;">Cancelar</button>
+                            </div>
                         </div>
                         <table class="admin-table" aria-describedby="panel-title">
                             <thead>
@@ -261,56 +320,59 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>Sillón Modular</td>
-                                    <td>Salón</td>
-                                    <td>$949.99</td>
-                                    <td>15</td>
-                                    <td><span class="pill">✓</span></td>
-                                    <td>Madera</td>
-                                    <td>
-                                        <button class="action-btn action-del">Eliminar</button>
-                                        <button class="action-btn action-edit">Editar</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>Cama Queen</td>
-                                    <td>Mader/Metal</td>
-                                    <td>$799.00</td>
-                                    <td>22</td>
-                                    <td><span class="pill">✓</span></td>
-                                    <td>Melamina</td>
-                                    <td>
-                                        <button class="action-btn action-del">Eliminar</button>
-                                        <button class="action-btn action-edit">Editar</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Silla Ergonómica</td>
-                                    <td>Office</td>
-                                    <td>$299.75</td>
-                                    <td>120</td>
-                                    <td><span class="pill">✓</span></td>
-                                    <td>Plástico / Malla</td>
-                                    <td>
-                                        <button class="action-btn action-del">Eliminar</button>
-                                        <button class="action-btn action-edit">Editar</button>
-                                    </td>
-                                </tr>
+                                ${rows}
                             </tbody>
                         </table>
-                        `;
-                        openPanel('Administración de Muebles', mueblesHtml);
-                    } else if(target === 'variantes'){
-                        // set panel accent to requested green and inject variants table
-                        panel.style.setProperty('--panel-accent', '#0CF9AD');
-                        const variantesHtml = `
+                    `;
+                    openPanel('Administración de Muebles', mueblesHtml);
+                    
+                    // Agregar event listeners al formulario
+                    setupFormHandlers('muebles');
+                } catch(err){
+                    console.error('Error cargando muebles:', err);
+                    const errorMsg = `<p style="color:red">Error: ${err.message}<br/>Asegúrate de que el backend esté corriendo en puerto 8080</p>`;
+                    openPanel('Administración de Muebles', errorMsg);
+                }
+            }
+
+            // function to build variantes table from API data
+            async function loadAndShowVariantes(){
+                panel.style.setProperty('--panel-accent', '#0CF9AD');
+                
+                try {
+                    const baseUrl = getBaseUrl();
+                    const response = await fetch(baseUrl + '/api/variantes');
+                    
+                    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const variantes = await response.json();
+                    
+                    const rows = variantes.map(v => `
+                        <tr>
+                            <td>${v.id_variante || 'N/A'}</td>
+                            <td>${v.nombre || ''}</td>
+                            <td>$${(v.precio_adicional || 0).toFixed(2)}</td>
+                            <td>
+                                <button class="action-btn action-del" data-id="${v.id_variante}" data-action="delete">Eliminar</button>
+                                <button class="action-btn action-edit" data-id="${v.id_variante}" data-action="edit">Editar</button>
+                            </td>
+                        </tr>`).join('\n');
+                    
+                    const variantesHtml = `
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                             <div></div>
-                            <button class="create-btn">Añadir Nueva Variante</button>
+                            <button class="create-btn--green" data-show="form-variantes">Crear Nueva Variante</button>
+                        </div>
+                        <div id="form-variantes" style="display:none;background:#f9f9f9;padding:12px;border-radius:6px;margin-bottom:12px;border:1px solid #e0e0e0;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+                                <input type="number" class="form-input" placeholder="ID Mueble" data-field="id_mueble" />
+                                <input type="text" class="form-input" placeholder="Nombre" data-field="nombre" />
+                                <input type="number" class="form-input" placeholder="Precio Adicional" data-field="precio_adicional" step="0.01" />
+                            </div>
+                            <div style="display:flex;gap:8px;margin-top:12px;">
+                                <button class="submit-btn" data-action="submit-variantes" style="flex:1;background:#0CF9AD;color:#000;border:none;padding:8px;border-radius:4px;cursor:pointer;">Guardar</button>
+                                <button class="cancel-btn" data-action="cancel" style="flex:1;background:#ccc;border:none;padding:8px;border-radius:4px;cursor:pointer;">Cancelar</button>
+                            </div>
                         </div>
                         <table class="admin-table" aria-describedby="panel-title">
                             <thead>
@@ -322,75 +384,73 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>Barniz Roble</td>
-                                    <td>$150.00</td>
-                                    <td>
-                                        <button class="action-btn action-del">Eliminar</button>
-                                        <button class="action-btn action-edit">Editar</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>Tapizado Lino</td>
-                                    <td>$200.00</td>
-                                    <td>
-                                        <button class="action-btn action-del">Eliminar</button>
-                                        <button class="action-btn action-edit">Editar</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Cajones Extra</td>
-                                    <td>$100.00</td>
-                                    <td>
-                                        <button class="action-btn action-del">Eliminar</button>
-                                        <button class="action-btn action-edit">Editar</button>
-                                    </td>
-                                </tr>
+                                ${rows}
                             </tbody>
                         </table>
-                        `;
-                        openPanel('Administración de Variantes', variantesHtml);
-                    } else if(target === 'cotizaciones'){
-                        // set panel accent to the cotizaciones card color
-                        const cotCard = document.querySelector('.card--cotizaciones');
-                        const cotBg = cotCard ? getComputedStyle(cotCard).backgroundColor : '#f2a1b6';
-                        panel.style.setProperty('--panel-accent', cotBg);
+                    `;
+                    openPanel('Administración de Variantes', variantesHtml);
+                    setupFormHandlers('variantes');
+                } catch(err){
+                    console.error('Error cargando variantes:', err);
+                    const errorMsg = `<p style="color:red">Error: ${err.message}<br/>Asegúrate de que el backend esté corriendo en puerto 8080</p>`;
+                    openPanel('Administración de Variantes', errorMsg);
+                }
+            }
 
-                        // sample cotizaciones data (replace with API data later)
-                        const cotizaciones = [
-                            {id: 1, fecha: '2025-12-01', cliente: 'Ana García', total: '$1,200.00', estado: 'Pendiente'},
-                            {id: 2, fecha: '2025-11-28', cliente: 'Luis Pérez', total: '$799.00', estado: 'Confirmada'},
-                            {id: 3, fecha: '2025-11-30', cliente: 'María López', total: '$299.75', estado: 'Cancelada'}
-                        ];
-
-                        const rows = cotizaciones.map(c => {
-                            const actions = [];
-                            if(c.estado === 'Pendiente'){
-                                actions.push('<button class="action-btn action-confirm">Confirmar</button>');
-                            }
-                            actions.push('<button class="action-btn action-del">Cancelar</button>');
-                            // only allow edit when not Confirmada
-                            if(c.estado !== 'Confirmada' || c.estado !== 'Cancelada'){
-                                actions.push('<button class="action-btn action-edit">Editar</button>');
-                            }
-                            return `
-                                <tr>
-                                    <td>${c.id}</td>
-                                    <td>${c.fecha}</td>
-                                    <td>${c.cliente}</td>
-                                    <td>${c.total}</td>
-                                    <td>${c.estado}</td>
-                                    <td>${actions.join('')}</td>
-                                </tr>`;
-                        }).join('\n');
-
-                        const cotizacionesHtml = `
+            // function to build cotizaciones table from API data
+            async function loadAndShowCotizaciones(){
+                const cotCard = document.querySelector('.card--cotizaciones');
+                const cotBg = cotCard ? getComputedStyle(cotCard).backgroundColor : '#f2a1b6';
+                panel.style.setProperty('--panel-accent', cotBg);
+                
+                try {
+                    const baseUrl = getBaseUrl();
+                    const response = await fetch(baseUrl + '/api/cotizaciones');
+                    
+                    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const cotizaciones = await response.json();
+                    
+                    const rows = cotizaciones.map(c => {
+                        const actions = [];
+                        if(c.estado === 'Pendiente'){
+                            actions.push(`<button class="action-btn action-confirm" data-id="${c.id_cotizacion}" data-action="confirm">Confirmar</button>`);
+                        }
+                        actions.push(`<button class="action-btn action-del" data-id="${c.id_cotizacion}" data-action="cancel">Cancelar</button>`);
+                        if(c.estado !== 'Confirmada'){
+                            actions.push(`<button class="action-btn action-edit" data-id="${c.id_cotizacion}" data-action="edit">Editar</button>`);
+                        }
+                        return `
+                            <tr>
+                                <td>${c.id_cotizacion || 'N/A'}</td>
+                                <td>${c.fecha ? new Date(c.fecha).toLocaleDateString('es-ES') : 'N/A'}</td>
+                                <td>${c.cliente || ''}</td>
+                                <td>$${(c.total || 0).toFixed(2)}</td>
+                                <td>${c.estado || 'Pendiente'}</td>
+                                <td>${actions.join('')}</td>
+                            </tr>`;
+                    }).join('\n');
+                    
+                    const cotizacionesHtml = `
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                             <div></div>
-                            <button class="create-btn--accent">Crear Cotización</button>
+                            <button class="create-btn--accent" data-show="form-cotizaciones">Crear Cotización</button>
+                        </div>
+                        <div id="form-cotizaciones" style="display:none;background:#f9f9f9;padding:12px;border-radius:6px;margin-bottom:12px;border:1px solid #e0e0e0;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+                                <input type="date" class="form-input" placeholder="Fecha" data-field="fecha" />
+                                <input type="text" class="form-input" placeholder="Cliente" data-field="cliente" />
+                                <input type="number" class="form-input" placeholder="Total" data-field="total" step="0.01" />
+                                <select class="form-input" data-field="estado">
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Confirmada">Confirmada</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
+                            </div>
+                            <div style="display:flex;gap:8px;margin-top:12px;">
+                                <button class="submit-btn" data-action="submit-cotizaciones" style="flex:1;background:#f2a1b6;color:#000;border:none;padding:8px;border-radius:4px;cursor:pointer;">Guardar</button>
+                                <button class="cancel-btn" data-action="cancel" style="flex:1;background:#ccc;border:none;padding:8px;border-radius:4px;cursor:pointer;">Cancelar</button>
+                            </div>
                         </div>
                         <table class="admin-table" aria-describedby="panel-title">
                             <thead>
@@ -407,13 +467,105 @@
                                 ${rows}
                             </tbody>
                         </table>
-                        `;
+                    `;
+                    openPanel('Administración de Cotizaciones', cotizacionesHtml);
+                    setupFormHandlers('cotizaciones');
+                } catch(err){
+                    console.error('Error cargando cotizaciones:', err);
+                    const errorMsg = `<p style="color:red">Error: ${err.message}<br/>Asegúrate de que el backend esté corriendo en puerto 8080</p>`;
+                    openPanel('Administración de Cotizaciones', errorMsg);
+                }
+            }
 
-                        openPanel('Administración de Cotizaciones', cotizacionesHtml);
+            // handlers for cards
+            document.querySelectorAll('.card[role="button"]').forEach(el=>{
+                el.addEventListener('click', ()=>{
+                    const target = el.getAttribute('data-panel');
+                    if(target === 'muebles'){
+                        loadAndShowMuebles();
+                    } else if(target === 'variantes'){
+                        loadAndShowVariantes();
+                    } else if(target === 'cotizaciones'){
+                        loadAndShowCotizaciones();
                     }
                 });
                 el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') el.click(); });
             });
+
+            
+            // Setup form handlers for create/cancel buttons
+            function setupFormHandlers(type){
+                const formId = `form-${type}`;
+                const form = document.getElementById(formId);
+                if(!form) return;
+                
+                // Toggle form visibility
+                const createBtn = document.querySelector(`[data-show="${formId}"]`);
+                if(createBtn){
+                    createBtn.addEventListener('click', ()=>{
+                        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+                    });
+                }
+                
+                // Cancel button
+                const cancelBtn = form.querySelector('[data-action="cancel"]');
+                if(cancelBtn){
+                    cancelBtn.addEventListener('click', ()=>{
+                        form.style.display = 'none';
+                        form.querySelectorAll('.form-input').forEach(inp => inp.value = '');
+                    });
+                }
+                
+                // Submit button
+                const submitBtn = form.querySelector('[data-action^="submit"]');
+                if(submitBtn){
+                    submitBtn.addEventListener('click', async ()=>{
+                        const fields = {};
+                        form.querySelectorAll('.form-input').forEach(inp => {
+                            fields[inp.dataset.field] = inp.value;
+                        });
+                        
+                        // Validate empty fields
+                        if(Object.values(fields).some(v => !v)){
+                            alert('Por favor completa todos los campos');
+                            return;
+                        }
+                        
+                        await submitFormData(type, fields);
+                    });
+                }
+            }
+            
+            // Submit form data to backend
+            async function submitFormData(type, fields){
+                const baseUrl = getBaseUrl();
+                const endpoints = {
+                    muebles: '/api/muebles',
+                    variantes: '/api/variantes',
+                    cotizaciones: '/api/cotizaciones'
+                };
+                
+                try {
+                    const response = await fetch(baseUrl + endpoints[type], {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(fields)
+                    });
+                    
+                    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    alert('Registro creado exitosamente');
+                    document.getElementById(`form-${type}`).style.display = 'none';
+                    
+                    // Reload table
+                    if(type === 'muebles') loadAndShowMuebles();
+                    else if(type === 'variantes') loadAndShowVariantes();
+                    else if(type === 'cotizaciones') loadAndShowCotizaciones();
+                } catch(err){
+                    alert('Error al crear registro: ' + err.message);
+                    console.error(err);
+                }
+            }
 
             closeBtn.addEventListener('click', closePanel);
             // click outside panel to close

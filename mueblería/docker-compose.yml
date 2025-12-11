@@ -9,6 +9,24 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysqldb
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
+    depends_on:
+      mysqldb:
+        condition: service_healthy
 
   mailhog:
     image: mailhog/mailhog
@@ -23,10 +41,14 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysqldb
-      - mailhog
+      mysqldb:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/muebles_hermanos
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/muebles_hermanos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
       SPRING_MAIL_HOST: mailhog
       SPRING_MAIL_PORT: 1025
       SPRING_MAIL_USERNAME: ""
