@@ -352,7 +352,7 @@
                     const rows = variantes.map(v => `
                         <tr>
                             <td>${v.id_variante || 'N/A'}</td>
-                            <td>${v.nombre || ''}</td>
+                            <td>${v.nombre_variante || ''}</td>
                             <td>$${(v.precio_adicional || 0).toFixed(2)}</td>
                             <td>
                                 <button class="action-btn action-del" data-id="${v.id_variante}" data-action="delete">Eliminar</button>
@@ -425,9 +425,8 @@
                         return `
                             <tr>
                                 <td>${c.id_cotizacion || 'N/A'}</td>
-                                <td>${c.fecha ? new Date(c.fecha).toLocaleDateString('es-ES') : 'N/A'}</td>
-                                <td>${c.cliente || ''}</td>
-                                <td>$${(c.total || 0).toFixed(2)}</td>
+                                <td>${c.fecha_cotizacion ? new Date(c.fecha).toLocaleDateString('es-ES') : 'N/A'}</td>
+                                <td>$${(c.calculoTotal || 0).toFixed(2)}</td>
                                 <td>${c.estado || 'Pendiente'}</td>
                                 <td>${actions.join('')}</td>
                             </tr>`;
@@ -441,7 +440,6 @@
                         <div id="form-cotizaciones" style="display:none;background:#f9f9f9;padding:12px;border-radius:6px;margin-bottom:12px;border:1px solid #e0e0e0;">
                             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
                                 <input type="date" class="form-input" placeholder="Fecha" data-field="fecha" />
-                                <input type="text" class="form-input" placeholder="Cliente" data-field="cliente" />
                                 <input type="number" class="form-input" placeholder="Total" data-field="total" step="0.01" />
                                 <select class="form-input" data-field="estado">
                                     <option value="Pendiente">Pendiente</option>
@@ -459,7 +457,6 @@
                                 <tr>
                                     <th>id</th>
                                     <th>fecha</th>
-                                    <th>cliente</th>
                                     <th>total</th>
                                     <th>estado</th>
                                     <th>Administración</th>
