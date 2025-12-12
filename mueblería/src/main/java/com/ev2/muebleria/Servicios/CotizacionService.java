@@ -119,6 +119,11 @@ public class CotizacionService {
     public Cotizacion cancelarCotizacion(Long cotizacionId) {
         Cotizacion cotizacion = cotizacionRepository.findById(cotizacionId)
                 .orElseThrow(() -> new RuntimeException("Cotización no encontrada"));
+        
+        // Validar si ya está cancelada para evitar errores o redundancia
+        if (EstadoCotizacionEnum.valueOf("CANCELADA".toUpperCase()).equals(cotizacion.getEstado())) {
+            throw new RuntimeException("La cotización ya se encuentra cancelada.");
+        }
         cotizacion.setEstado(EstadoCotizacionEnum.valueOf("CANCELADA".toUpperCase()));
         return cotizacionRepository.save(cotizacion);
     }

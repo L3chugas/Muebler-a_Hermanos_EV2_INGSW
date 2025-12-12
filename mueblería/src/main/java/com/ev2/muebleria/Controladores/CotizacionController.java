@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ import com.ev2.muebleria.Servicios.StockInsuficienteException;
 
 @RestController
 @RequestMapping("/api/cotizaciones")
+@CrossOrigin(origins = "*") 
 public class CotizacionController {
 
     @Autowired
@@ -72,9 +74,12 @@ public class CotizacionController {
     @PostMapping("/{id}/cancelar")
     public ResponseEntity<?> cancelarCotizacion(@PathVariable("id") Long id) {
         try {
+            System.out.println("Cancelando cotización con ID: " + id);
+            
             Cotizacion cotizacionCancelada = cotizacionService.cancelarCotizacion(id);
             return ResponseEntity.ok(cotizacionCancelada);
         } catch (Exception e) {
+            e.printStackTrace(); // Imprime el error real (ej: Enum incorrecto) en la consola del servidor
             Map<String, String> respuestaError = Collections.singletonMap("error", "Error al cancelar: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
         }

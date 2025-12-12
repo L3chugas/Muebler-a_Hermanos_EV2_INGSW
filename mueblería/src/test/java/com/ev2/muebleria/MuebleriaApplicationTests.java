@@ -1,5 +1,4 @@
 package com.ev2.muebleria;
-import com.ev2.muebleria.MuebleriaApplication;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

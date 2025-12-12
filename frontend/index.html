@@ -29,7 +29,7 @@
                 linear-gradient(#e6e6e6 1px, transparent 1px),
                 linear-gradient(90deg,#e6e6e6 1px, transparent 1px);
             background-size:64px 64px,64px 64px;
-            padding:28px 36px 92px 36px; /* espacio inferior para el footer */
+            padding:28px 36px 92px 36px; /* espacio inferior para la pagina que se despliega */
             box-sizing:border-box;
             display: flex;
             flex-direction: column;
@@ -118,7 +118,7 @@
             z-index:30;
         }
 
-        /* slide-up panel above footer */
+        /* slide-up panel */
         .panel{
             position:fixed;
             left:50%;
@@ -156,7 +156,7 @@
         .create-btn--purple{ background:var(--purple); color:#fff; padding:10px 14px; border-radius:10px; border:none; font-weight:700 }
         .create-btn--accent{ background:var(--panel-accent); color:#fff; padding:10px 14px; border-radius:10px; border:none; font-weight:700 }
 
-        /* table styles */
+        /* estilos de las tablas */
         .admin-table{ width:100%; border-collapse:collapse; font-size:15px }
         .admin-table thead th{ background:rgba(0,0,0,0.06); padding:14px; text-align:left }
         .admin-table tbody td{ padding:12px; border-top:1px solid #eee }
@@ -166,7 +166,7 @@
         .action-del{ background:#6e5f6f; color:#fff }
         .action-confirm{ background:#2eaf4a; color:#fff }
         
-        /* form styles */
+        /* estilos de formas */
         .form-input{ padding:8px; border:1px solid #ddd; border-radius:4px; font-size:14px; font-family:inherit; width: 100%; box-sizing: border-box; }
         .form-input:focus{ outline:2px solid #7b2bd4; outline-offset:-1px; }
         .submit-btn:hover{ opacity:0.9; }
@@ -178,7 +178,6 @@
         .total-display { font-size: 24px; font-weight: bold; color: var(--purple); text-align: right; margin-top: 10px; }
         .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
 
-        /* responsive */
         @media (max-width:980px){
             .admin-row{ flex-direction:column; gap:22px; align-items: center; }
             .card{ width:80%; }
@@ -424,8 +423,7 @@
                         </div>
                         <div id="form-variantes" style="display:none;background:#f9f9f9;padding:12px;border-radius:6px;margin-bottom:12px;border:1px solid #e0e0e0;">
                             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
-                                <input type="number" class="form-input" placeholder="ID Mueble" data-field="id_mueble" />
-                                <input type="text" class="form-input" placeholder="Nombre" data-field="nombre" />
+                                <input type="text" class="form-input" placeholder="Nombre" data-field="nombre_variante" />
                                 <input type="number" class="form-input" placeholder="Precio Adicional" data-field="precio_adicional" step="1" />
                             </div>
                             <div style="display:flex;gap:8px;margin-top:12px;">
@@ -554,7 +552,7 @@
             const btnGenerar = document.getElementById('btn-generar');
             btnGenerar.addEventListener('click', async () => {
                 let allVariantes = [];
-                // 1. Mostrar estructura base de cotización
+                // Mostrar estructura base de cotización
                 const cotizadorHtml = `
                     <div class="quote-grid">
                         <div>
@@ -597,14 +595,13 @@
                     </div>
                 `;
                 
-                // Usamos el color naranja para el panel
                 panel.style.setProperty('--panel-accent', '#ff8833');
                 openPanel('Generador de Cotización', cotizadorHtml);
 
-                // 2. Cargar datos de muebles desde API para llenar el Select
+                // Cargar datos de muebles desde API para llenar el Select
                 try {
                     const baseUrl = getBaseUrl();
-                    // [GUÍA] CARGA DE DATOS: Aquí pedimos al backend la lista de muebles para llenar el <select>
+                    // CARGA DE DATOS: Aquí se pide al backend la lista de muebles para llenar el <select>
                     // INTERACCIÓN BACKEND: GET - Cargar datos auxiliares (Muebles y Variantes) para el formulario
                     const [resMuebles, resVariantes] = await Promise.all([
                         fetch(baseUrl + '/api/muebles'),
@@ -641,13 +638,13 @@
                     }
                 } catch(e) { console.error("Error cargando muebles para cotizador", e); }
 
-                // 3. Lógica del Front-end del Cotizador
+                // Lógica del Front-end del Cotizador
                 const itemsBody = document.getElementById('quote-items-body');
                 const totalSpan = document.getElementById('quote-total');
                 let cart = [];
 
                 document.getElementById('btn-add-item').addEventListener('click', () => {
-                    // [GUÍA] CAPTURA DE DATOS (INPUTS): Aquí leemos lo que el usuario seleccionó en el HTML
+                    // CAPTURA DE DATOS (INPUTS): Aquí se lee lo que el usuario seleccionó en el HTML
                     const select = document.getElementById('quote-mueble-select');
                     const qtyInput = document.getElementById('quote-qty');
                     const selectedOpt = select.options[select.selectedIndex];
@@ -719,15 +716,14 @@
                     renderCart();
                 };
 
-                // 4. Guardar Cotización
+                // Guardar Cotización
                 document.getElementById('btn-save-quote').addEventListener('click', async () => {
                     if(cart.length === 0) return alert("Agregue productos a la cotización");
                     
-                    // IMPORTANTE: Recalcular el total exacto sumando los items.
-                    // Usar totalSpan.textContent causaba error porque .toFixed(0) eliminaba los decimales.
+                    // Recalcular el total exacto sumando los items
                     const exactTotal = cart.reduce((acc, item) => acc + item.subtotal, 0);
 
-                    // [GUÍA] CONSTRUCCIÓN DEL PAYLOAD: Aquí transformamos los datos del carrito al formato JSON
+                    // CONSTRUCCIÓN DEL PAYLOAD: Aquí se transforman los datos del carrito al formato JSON
                     // que la clase Java 'Cotizacion' espera recibir.
                     const payload = {
                         detalles: cart.map(i => ({
@@ -739,7 +735,7 @@
 
                     try {
                         const baseUrl = getBaseUrl();
-                        // [GUÍA] ENVÍO AL BACKEND: Usamos fetch con método POST para enviar el JSON
+                        // ENVÍO AL BACKEND: Se usa fetch con método POST para enviar el JSON
                         // INTERACCIÓN BACKEND: POST - Guardar la nueva cotización en la base de datos
                         const res = await fetch(baseUrl + '/api/cotizaciones', {
                             method: 'POST',
@@ -902,7 +898,7 @@
                             if(!confirm('¿Deseas cancelar esta cotización?')) return;
                             try {
                                 // Usar endpoint específico POST /cancelar
-                                const res = await fetch(`${baseUrl}/api/${type}/${id}/cancelar`, {
+                                const res = await fetch(`${baseUrl}/api/cotizaciones/${id}/cancelar`, {
                                     method: 'POST'
                                 });
                                 if(res.ok) loadAndShowCotizaciones();
