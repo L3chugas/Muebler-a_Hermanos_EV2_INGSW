@@ -500,6 +500,7 @@
                                 <td>${fechaStr}</td>
                                 <td>$${(c.calculoTotal || 0).toFixed(0)}</td>
                                 <td>${estadoActual}</td>
+                                <td><button class="action-btn action-details" data-id="${c.id_cotizacion}" style="background:#6c757d;color:white">Ver Detalles</button></td>
                                 <td>${actions.join('')}</td>
                             </tr>`;
                     }).join('\n');
@@ -515,6 +516,7 @@
                                     <th>fecha</th>
                                     <th>total</th>
                                     <th>estado</th>
+                                    <th>Detalles</th>
                                     <th>Administración</th>
                                 </tr>
                             </thead>
@@ -602,6 +604,7 @@
                 // 2. Cargar datos de muebles desde API para llenar el Select
                 try {
                     const baseUrl = getBaseUrl();
+                    // [GUÍA] CARGA DE DATOS: Aquí pedimos al backend la lista de muebles para llenar el <select>
                     // INTERACCIÓN BACKEND: GET - Cargar datos auxiliares (Muebles y Variantes) para el formulario
                     const [resMuebles, resVariantes] = await Promise.all([
                         fetch(baseUrl + '/api/muebles'),
@@ -616,10 +619,24 @@
                         muebles.forEach(m => {
                             const opt = document.createElement('option');
                             opt.value = m.id_mueble;
-                            opt.textContent = `${m.nombre} ($${Math.round(m.precio_base)})`;
+                            opt.textContent = `${m.nombre} ($${Math.round(m.precio_base)}) [Stock: ${m.stock}]`;
                             opt.dataset.price = m.precio_base;
                             opt.dataset.name = m.nombre;
+                            opt.dataset.stock = m.stock;
                             select.appendChild(opt);
+                        });
+
+                        // Actualizar el límite del input cantidad al cambiar selección
+                        select.addEventListener('change', () => {
+                            const qtyInput = document.getElementById('quote-qty');
+                            const selectedOpt = select.options[select.selectedIndex];
+                            if (selectedOpt.value && selectedOpt.dataset.stock) {
+                                const maxStock = parseInt(selectedOpt.dataset.stock);
+                                qtyInput.max = maxStock;
+                                if (parseInt(qtyInput.value) > maxStock) qtyInput.value = maxStock;
+                            } else {
+                                qtyInput.removeAttribute('max');
+                            }
                         });
                     }
                 } catch(e) { console.error("Error cargando muebles para cotizador", e); }
@@ -630,6 +647,7 @@
                 let cart = [];
 
                 document.getElementById('btn-add-item').addEventListener('click', () => {
+                    // [GUÍA] CAPTURA DE DATOS (INPUTS): Aquí leemos lo que el usuario seleccionó en el HTML
                     const select = document.getElementById('quote-mueble-select');
                     const qtyInput = document.getElementById('quote-qty');
                     const selectedOpt = select.options[select.selectedIndex];
@@ -638,6 +656,13 @@
 
                     const price = parseFloat(selectedOpt.dataset.price);
                     const qty = parseInt(qtyInput.value);
+                    
+                    const maxStock = parseInt(selectedOpt.dataset.stock || 0);
+                    if (qty > maxStock) {
+                        alert(`Stock insuficiente. Máximo disponible: ${maxStock}`);
+                        return;
+                    }
+
                     const name = selectedOpt.dataset.name;
                     const subtotal = price * qty;
 
@@ -702,20 +727,19 @@
                     // Usar totalSpan.textContent causaba error porque .toFixed(0) eliminaba los decimales.
                     const exactTotal = cart.reduce((acc, item) => acc + item.subtotal, 0);
 
+                    // [GUÍA] CONSTRUCCIÓN DEL PAYLOAD: Aquí transformamos los datos del carrito al formato JSON
+                    // que la clase Java 'Cotizacion' espera recibir.
                     const payload = {
-                        fecha_cotizacion: new Date().toISOString().split('T')[0],
-                        total: exactTotal,
-                        estado: 'Pendiente',
                         detalles: cart.map(i => ({
                             mueble: { id_mueble: parseInt(i.id) },
-                            cantidad: parseInt(i.qty),
-                            subtotal: parseFloat(i.subtotal),
-                            variante: i.variant ? { id_variante: parseInt(i.variant.id_variante) } : null
+                            variante: i.variant ? { id_variante: parseInt(i.variant.id_variante) } : null,
+                            cantidad: parseInt(i.qty)
                         }))
                     };
 
                     try {
                         const baseUrl = getBaseUrl();
+                        // [GUÍA] ENVÍO AL BACKEND: Usamos fetch con método POST para enviar el JSON
                         // INTERACCIÓN BACKEND: POST - Guardar la nueva cotización en la base de datos
                         const res = await fetch(baseUrl + '/api/cotizaciones', {
                             method: 'POST',
@@ -780,6 +804,53 @@
             }
             
             // --- FUNCIONES PARA EDICIÓN EN LÍNEA (TABLAS) ---
+            function showDetailsModal(cotizacion) {
+                const existing = document.getElementById('details-modal');
+                if(existing) existing.remove();
+
+                let fechaStr = 'N/A';
+                if (cotizacion.fecha_cotizacion) {
+                    if (Array.isArray(cotizacion.fecha_cotizacion) && cotizacion.fecha_cotizacion.length >= 3) {
+                        const [anio, mes, dia] = cotizacion.fecha_cotizacion;
+                        fechaStr = new Date(anio, mes - 1, dia).toLocaleDateString('es-ES');
+                    } else {
+                        const d = new Date(cotizacion.fecha_cotizacion);
+                        if (!isNaN(d.getTime())) fechaStr = d.toLocaleDateString('es-ES');
+                    }
+                }
+
+                const detalles = cotizacion.detalles || [];
+                
+                const rows = detalles.map(d => {
+                    const muebleNombre = d.mueble ? d.mueble.nombre : 'N/A';
+                    const varianteNombre = d.variante ? d.variante.nombre_variante : 'N/A';
+                    return `
+                        <tr>
+                            <td>${d.id_detalle}</td>
+                            <td>${muebleNombre}</td>
+                            <td>${varianteNombre}</td>
+                            <td>${d.cantidad}</td>
+                            <td>$${(d.subtotal || 0).toFixed(0)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const modalHtml = `
+                    <div id="details-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;">
+                        <div style="background:white;padding:24px;border-radius:12px;max-width:800px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+                            <h2 style="margin-top:0;color:#7b2bd4;">Detalles Cotización #${cotizacion.id_cotizacion}</h2>
+                            <p><strong>Fecha:</strong> ${fechaStr} | <strong>Total:</strong> $${(cotizacion.calculoTotal || 0).toFixed(0)} | <strong>Estado:</strong> ${cotizacion.estado}</p>
+                            <table class="admin-table" style="margin-top:16px;">
+                                <thead><tr><th>ID</th><th>Mueble</th><th>Variante</th><th>Cant.</th><th>Subtotal</th></tr></thead>
+                                <tbody>${rows.length ? rows : '<tr><td colspan="5">Sin detalles</td></tr>'}</tbody>
+                            </table>
+                            <div style="margin-top:24px;text-align:right;"><button onclick="document.getElementById('details-modal').remove()" class="btn close-btn" style="background:#7b2bd4;color:white;border:none;">Cerrar</button></div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }
+
             function setupTableActions(type) {
                 const table = document.querySelector('#panel-body table');
                 if (!table) return;
@@ -814,7 +885,21 @@
                         } catch(err) { console.error(err); alert('Error de conexión.'); }
                     }
                     
-                    // 2. Lógica para ELIMINAR o CANCELAR
+                    // 2. Lógica para VER DETALLES
+                    else if (target.classList.contains('action-details')) {
+                        const id = target.dataset.id;
+                        try {
+                            const res = await fetch(`${baseUrl}/api/cotizaciones/${id}`);
+                            if(res.ok){
+                                const cot = await res.json();
+                                showDetailsModal(cot);
+                            } else {
+                                alert('No se pudieron cargar los detalles.');
+                            }
+                        } catch(err) { console.error(err); alert('Error de conexión.'); }
+                    }
+
+                    // 3. Lógica para ELIMINAR o CANCELAR
                     else if (target.classList.contains('action-del') && !target.classList.contains('action-cancel-edit')) {
                         const id = target.dataset.id;
                         
