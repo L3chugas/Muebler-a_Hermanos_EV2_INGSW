@@ -115,4 +115,13 @@ public class CotizacionService {
         return cotizacionRepository.save(cotizacion);
     }
 
+    @Transactional
+    public Cotizacion cancelarCotizacion(Long cotizacionId) {
+        Cotizacion cotizacion = cotizacionRepository.findById(cotizacionId)
+                .orElseThrow(() -> new RuntimeException("Cotización no encontrada"));
+        cotizacion.setEstado(EstadoCotizacionEnum.valueOf("CANCELADA".toUpperCase()));
+        return cotizacionRepository.save(cotizacion);
+    }
+
+
 }

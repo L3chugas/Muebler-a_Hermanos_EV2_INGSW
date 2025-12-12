@@ -68,4 +68,15 @@ public class CotizacionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
         }
     }
+
+    @PostMapping("/{id}/cancelar")
+    public ResponseEntity<?> cancelarCotizacion(@PathVariable("id") Long id) {
+        try {
+            Cotizacion cotizacionCancelada = cotizacionService.cancelarCotizacion(id);
+            return ResponseEntity.ok(cotizacionCancelada);
+        } catch (Exception e) {
+            Map<String, String> respuestaError = Collections.singletonMap("error", "Error al cancelar: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuestaError);
+        }
+    }
 }

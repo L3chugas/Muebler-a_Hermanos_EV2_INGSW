@@ -867,20 +867,14 @@
                         
                         const id = target.dataset.id;
                         try {
-                            // Obtenemos la cotización actual
-                            const resGet = await fetch(`${baseUrl}/api/${type}/${id}`);
-                            if(resGet.ok){
-                                const data = await resGet.json();
-                                data.estado = 'Confirmada'; // Cambiamos estado
-                                
-                                // Enviamos actualización (PUT)
-                                const resPut = await fetch(`${baseUrl}/api/${type}/${id}`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify(data)
-                                });
-                                if(resPut.ok) loadAndShowCotizaciones();
-                                else alert('Error al confirmar la cotización.');
+                            // Usar endpoint específico POST /confirmar
+                            const res = await fetch(`${baseUrl}/api/${type}/${id}/confirmar`, {
+                                method: 'POST'
+                            });
+                            if(res.ok) loadAndShowCotizaciones();
+                            else {
+                                const err = await res.json().catch(()=>({}));
+                                alert('Error al confirmar: ' + (err.error || 'Error desconocido'));
                             }
                         } catch(err) { console.error(err); alert('Error de conexión.'); }
                     }
@@ -907,17 +901,14 @@
                         if (type === 'cotizaciones') {
                             if(!confirm('¿Deseas cancelar esta cotización?')) return;
                             try {
-                                const resGet = await fetch(`${baseUrl}/api/${type}/${id}`);
-                                if(resGet.ok){
-                                    const data = await resGet.json();
-                                    data.estado = 'Cancelada';
-                                    const resPut = await fetch(`${baseUrl}/api/${type}/${id}`, {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify(data)
-                                    });
-                                    if(resPut.ok) loadAndShowCotizaciones();
-                                    else alert('Error al cancelar la cotización.');
+                                // Usar endpoint específico POST /cancelar
+                                const res = await fetch(`${baseUrl}/api/${type}/${id}/cancelar`, {
+                                    method: 'POST'
+                                });
+                                if(res.ok) loadAndShowCotizaciones();
+                                else {
+                                    const err = await res.json().catch(()=>({}));
+                                    alert('Error al cancelar: ' + (err.error || 'Error desconocido'));
                                 }
                             } catch(err) { console.error(err); alert('Error de conexión.'); }
                         } 
