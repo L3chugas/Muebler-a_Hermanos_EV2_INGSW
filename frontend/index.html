@@ -239,9 +239,9 @@
                 if (window.location.protocol === 'file:') {
                     return 'http://localhost:' + (window.BACKEND_PORT || 8080);
                 }
-                // MODO DOCKER: Si estás en localhost:3000 -> Conecta al contenedor app (8080)
+                // MODO DOCKER: Si estás en localhost:3000 -> Conecta al contenedor app (8090)
                 if (window.location.port === '3000') {
-                    return window.location.protocol + '//' + window.location.hostname + ':8080';
+                    return window.location.protocol + '//' + window.location.hostname + ':8090';
                 }
                 // OTROS (Ej. Live Server): Por defecto intentamos el 8080 o el que definas
                 return window.location.protocol + '//' + window.location.hostname + ':' + (window.BACKEND_PORT || 8080);
