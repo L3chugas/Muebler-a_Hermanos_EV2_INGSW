@@ -9,6 +9,7 @@
             --purple: #7b2bd4;
             --light-bg: #f6f6f6;
             --card-shadow: rgba(0,0,0,0.18);
+            --orange-btn: #ff8833;
         }
         html,body{height:100%;}
         body{
@@ -30,6 +31,9 @@
             background-size:64px 64px,64px 64px;
             padding:28px 36px 92px 36px; /* espacio inferior para el footer */
             box-sizing:border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         header{
             background:var(--purple);
@@ -40,14 +44,24 @@
             box-shadow:0 2px 0 rgba(0,0,0,0.05) inset;
             font-size:32px;
             font-weight:700;
+            width: 100%;
+            box-sizing: border-box;
         }
-        .content{
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 48px;
+            margin-top: 56px;
+            margin-bottom: 48px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .admin-row {
             display:flex;
-            align-items:center;
+            flex-wrap: wrap;
             justify-content:center;
             gap:48px;
-            margin-top:56px;
-            margin-bottom:48px;
         }
         .card{
             width:320px;
@@ -64,11 +78,32 @@
             text-align:center;
             cursor:pointer;
             user-select:none;
+            transition: transform 0.2s;
         }
+        .card:hover { transform: translateY(-5px); }
         .card[role="button"]:focus{outline:3px solid rgba(123,43,212,0.18)}
         .card--muebles{ background: #c6a7f0; color: #fff; }
         .card--variantes{ background: #9fe6c5; color: #fff; }
         .card--cotizaciones{ background: #f2a1b6; color: #fff; }
+        
+        .btn-big-action {
+            background-color: var(--orange-btn);
+            color: white;
+            font-size: 36px;
+            font-weight: 600;
+            padding: 32px 64px;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            box-shadow: 0 10px 18px var(--card-shadow);
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+        .btn-big-action:hover { transform: scale(1.02); box-shadow: 0 14px 28px rgba(0,0,0,0.25); }
+        .btn-big-action:active { transform: scale(0.98); }
+
         footer{
             --h:var(--footer-height);
             background:var(--purple);
@@ -91,12 +126,14 @@
             bottom:calc(var(--footer-height) + 12px);
             width:calc(100% - 72px);
             max-width:1200px;
-            height:420px;
+            height:500px;
             background:#fff;
             border-radius:8px;
             box-shadow:0 18px 40px rgba(0,0,0,0.25);
             transition:transform .35s cubic-bezier(.2,.9,.2,1);
-            overflow:auto;
+            overflow:hidden;
+            display: flex;
+            flex-direction: column;
             z-index:40;
         }
         .panel.open{ transform:translateX(-50%) translateY(0); }
@@ -110,8 +147,9 @@
             align-items:center;
             justify-content:space-between;
             border-radius:6px 6px 0 0;
+            flex-shrink: 0;
         }
-        .panel-body{ padding:14px 18px 28px 18px; }
+        .panel-body{ padding:14px 18px 28px 18px; overflow-y: auto; flex: 1; }
         .panel .btn{ padding:8px 12px; border-radius:8px; border:none; cursor:pointer }
         .close-btn{ background:#fff;color:var(--purple); border:2px solid rgba(255,255,255,0.18); font-weight:700 }
         .create-btn{ background:#2fd79b; color:#fff; padding:10px 14px; border-radius:10px; border:none; font-weight:700 }
@@ -129,15 +167,23 @@
         .action-confirm{ background:#2eaf4a; color:#fff }
         
         /* form styles */
-        .form-input{ padding:8px; border:1px solid #ddd; border-radius:4px; font-size:14px; font-family:inherit; }
+        .form-input{ padding:8px; border:1px solid #ddd; border-radius:4px; font-size:14px; font-family:inherit; width: 100%; box-sizing: border-box; }
         .form-input:focus{ outline:2px solid #7b2bd4; outline-offset:-1px; }
         .submit-btn:hover{ opacity:0.9; }
         .cancel-btn:hover{ opacity:0.8; }
         
+        /* Styles específicos para el generador de cotización */
+        .quote-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .quote-summary { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; height: fit-content; }
+        .total-display { font-size: 24px; font-weight: bold; color: var(--purple); text-align: right; margin-top: 10px; }
+        .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+
         /* responsive */
         @media (max-width:980px){
-            .content{ flex-direction:column; gap:22px; }
+            .admin-row{ flex-direction:column; gap:22px; align-items: center; }
             .card{ width:80%; }
+            .btn-big-action { width: 90%; font-size: 24px; padding: 20px; }
+            .quote-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -145,10 +191,14 @@
     <div class="page">
         <header>Mueblería Hermanos</header>
 
-        <div class="content" role="main" aria-label="Acciones principales">
-            <div class="card card--muebles" role="button" tabindex="0" data-panel="muebles">Administrar<br> Muebles</div>
-            <div class="card card--variantes" role="button" tabindex="0" data-panel="variantes">Administrar<br> Variantes</div>
-            <div class="card card--cotizaciones" role="button" tabindex="0" data-panel="cotizaciones">Administrar<br> Cotizaciones</div>
+        <div class="main-layout" role="main">
+            <button id="btn-generar" class="btn-big-action">Generar cotización</button>
+
+            <div class="admin-row">
+                <div class="card card--muebles" role="button" tabindex="0" data-panel="muebles">Administrar<br> Muebles</div>
+                <div class="card card--variantes" role="button" tabindex="0" data-panel="variantes">Administrar<br> Variantes</div>
+                <div class="card card--cotizaciones" role="button" tabindex="0" data-panel="cotizaciones">Administrar<br> Cotizaciones</div>
+            </div>
         </div>
 
         <footer>Programador: Carlos Orellana</footer>
@@ -276,7 +326,7 @@
                             <td>${m.id_mueble || 'N/A'}</td>
                             <td>${m.nombre || ''}</td>
                             <td>${m.tipo || ''}</td>
-                            <td>$${(m.precio_base || 0).toFixed(2)}</td>
+                            <td>$${(m.precio_base || 0).toFixed(0)}</td>
                             <td>${m.stock || 0}</td>
                             <td><span class="pill">${m.activo ? '✓' : '✗'}</span></td>
                             <td>${m.material || ''}</td>
@@ -295,7 +345,7 @@
                             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
                                 <input type="text" class="form-input" placeholder="Nombre" data-field="nombre" />
                                 <input type="text" class="form-input" placeholder="Tipo" data-field="tipo" />
-                                <input type="number" class="form-input" placeholder="Precio Base" data-field="precio_base" step="0.01" />
+                                <input type="number" class="form-input" placeholder="Precio Base" data-field="precio_base" step="1" />
                                 <input type="number" class="form-input" placeholder="Stock" data-field="stock" />
                                 <select class="form-input" data-field="activo">
                                     <option value="true">Activo: Sí</option>
@@ -330,6 +380,7 @@
                     
                     // Agregar event listeners al formulario
                     setupFormHandlers('muebles');
+                    setupTableActions('muebles');
                 } catch(err){
                     console.error('Error cargando muebles:', err);
                     const errorMsg = `<p style="color:red">Error: ${err.message}<br/>Asegúrate de que el backend esté corriendo en puerto 8080</p>`;
@@ -353,7 +404,7 @@
                         <tr>
                             <td>${v.id_variante || 'N/A'}</td>
                             <td>${v.nombre_variante || ''}</td>
-                            <td>$${(v.precio_adicional || 0).toFixed(2)}</td>
+                            <td>$${(v.precio_adicional || 0).toFixed(0)}</td>
                             <td>
                                 <button class="action-btn action-del" data-id="${v.id_variante}" data-action="delete">Eliminar</button>
                                 <button class="action-btn action-edit" data-id="${v.id_variante}" data-action="edit">Editar</button>
@@ -369,7 +420,7 @@
                             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
                                 <input type="number" class="form-input" placeholder="ID Mueble" data-field="id_mueble" />
                                 <input type="text" class="form-input" placeholder="Nombre" data-field="nombre" />
-                                <input type="number" class="form-input" placeholder="Precio Adicional" data-field="precio_adicional" step="0.01" />
+                                <input type="number" class="form-input" placeholder="Precio Adicional" data-field="precio_adicional" step="1" />
                             </div>
                             <div style="display:flex;gap:8px;margin-top:12px;">
                                 <button class="submit-btn" data-action="submit-variantes" style="flex:1;background:#0CF9AD;color:#000;border:none;padding:8px;border-radius:4px;cursor:pointer;">Guardar</button>
@@ -392,6 +443,7 @@
                     `;
                     openPanel('Administración de Variantes', variantesHtml);
                     setupFormHandlers('variantes');
+                    setupTableActions('variantes');
                 } catch(err){
                     console.error('Error cargando variantes:', err);
                     const errorMsg = `<p style="color:red">Error: ${err.message}<br/>Asegúrate de que el backend esté corriendo en puerto 8080</p>`;
@@ -422,11 +474,24 @@
                         if(c.estado !== 'Confirmada'){
                             actions.push(`<button class="action-btn action-edit" data-id="${c.id_cotizacion}" data-action="edit">Editar</button>`);
                         }
+
+                        let fechaStr = 'N/A';
+                        if (c.fecha_cotizacion) {
+                            // Si es un array [yyyy, mm, dd, ...] (formato por defecto de LocalDateTime)
+                            if (Array.isArray(c.fecha_cotizacion) && c.fecha_cotizacion.length >= 3) {
+                                const [anio, mes, dia] = c.fecha_cotizacion;
+                                fechaStr = new Date(anio, mes - 1, dia).toLocaleDateString('es-ES');
+                            } else {
+                                const d = new Date(c.fecha_cotizacion);
+                                if (!isNaN(d.getTime())) fechaStr = d.toLocaleDateString('es-ES');
+                            }
+                        }
+
                         return `
                             <tr>
                                 <td>${c.id_cotizacion || 'N/A'}</td>
-                                <td>${c.fecha_cotizacion ? new Date(c.fecha).toLocaleDateString('es-ES') : 'N/A'}</td>
-                                <td>$${(c.calculoTotal || 0).toFixed(2)}</td>
+                                <td>${fechaStr}</td>
+                                <td>$${(c.calculoTotal || 0).toFixed(0)}</td>
                                 <td>${c.estado || 'Pendiente'}</td>
                                 <td>${actions.join('')}</td>
                             </tr>`;
@@ -440,7 +505,7 @@
                         <div id="form-cotizaciones" style="display:none;background:#f9f9f9;padding:12px;border-radius:6px;margin-bottom:12px;border:1px solid #e0e0e0;">
                             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
                                 <input type="date" class="form-input" placeholder="Fecha" data-field="fecha" />
-                                <input type="number" class="form-input" placeholder="Total" data-field="total" step="0.01" />
+                                <input type="number" class="form-input" placeholder="Total" data-field="total" step="1" />
                                 <select class="form-input" data-field="estado">
                                     <option value="Pendiente">Pendiente</option>
                                     <option value="Confirmada">Confirmada</option>
@@ -469,6 +534,7 @@
                     `;
                     openPanel('Administración de Cotizaciones', cotizacionesHtml);
                     setupFormHandlers('cotizaciones');
+                    setupTableActions('cotizaciones');
                 } catch(err){
                     console.error('Error cargando cotizaciones:', err);
                     const errorMsg = `<p style="color:red">Error: ${err.message}<br/>Asegúrate de que el backend esté corriendo en puerto 8080</p>`;
@@ -491,6 +557,158 @@
                 el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') el.click(); });
             });
 
+            // --- Lógica del Botón Gigante (Nueva Funcionalidad) ---
+            const btnGenerar = document.getElementById('btn-generar');
+            btnGenerar.addEventListener('click', async () => {
+                // 1. Mostrar estructura base de cotización
+                const cotizadorHtml = `
+                    <div class="quote-grid">
+                        <div>
+                            <h3>Seleccionar Productos</h3>
+                            <div style="display:flex; gap:10px; margin-bottom:15px; align-items:flex-end;">
+                                <div style="flex:2">
+                                    <label style="font-size:12px; font-weight:bold;">Mueble</label>
+                                    <select id="quote-mueble-select" class="form-input">
+                                        <option value="">Cargando muebles...</option>
+                                    </select>
+                                </div>
+                                <div style="flex:1">
+                                    <label style="font-size:12px; font-weight:bold;">Cantidad</label>
+                                    <input type="number" id="quote-qty" class="form-input" value="1" min="1">
+                                </div>
+                                <button id="btn-add-item" class="create-btn--purple">Agregar +</button>
+                            </div>
+                            
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cant.</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Subtotal</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quote-items-body"></tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="quote-summary">
+                            <h3>Resumen</h3>
+                            <div style="margin-bottom:10px;">
+                                <label>Cliente</label>
+                                <input type="text" class="form-input" placeholder="Nombre del cliente" id="quote-client">
+                            </div>
+                            <div style="margin-bottom:10px;">
+                                <label>Fecha</label>
+                                <input type="date" class="form-input" value="${new Date().toISOString().split('T')[0]}" id="quote-date">
+                            </div>
+                            <hr style="border:0; border-top:1px solid #ddd; margin: 20px 0;">
+                            <div class="total-display">Total: $<span id="quote-total">0.00</span></div>
+                            <button id="btn-save-quote" class="btn-big-action" style="font-size:18px; padding:12px; margin-top:20px; border-width:2px;">Confirmar Cotización</button>
+                        </div>
+                    </div>
+                `;
+                
+                // Usamos el color naranja para el panel
+                panel.style.setProperty('--panel-accent', '#ff8833');
+                openPanel('Generador de Cotización', cotizadorHtml);
+
+                // 2. Cargar datos de muebles desde API para llenar el Select
+                try {
+                    const baseUrl = getBaseUrl();
+                    const res = await fetch(baseUrl + '/api/muebles');
+                    if(res.ok){
+                        const muebles = await res.json();
+                        const select = document.getElementById('quote-mueble-select');
+                        select.innerHTML = '<option value="">Seleccione un mueble...</option>';
+                        muebles.forEach(m => {
+                            const opt = document.createElement('option');
+                            opt.value = m.id_mueble;
+                            opt.textContent = `${m.nombre} ($${Math.round(m.precio_base)})`;
+                            opt.dataset.price = m.precio_base;
+                            opt.dataset.name = m.nombre;
+                            select.appendChild(opt);
+                        });
+                    }
+                } catch(e) { console.error("Error cargando muebles para cotizador", e); }
+
+                // 3. Lógica del Front-end del Cotizador
+                const itemsBody = document.getElementById('quote-items-body');
+                const totalSpan = document.getElementById('quote-total');
+                let cart = [];
+
+                document.getElementById('btn-add-item').addEventListener('click', () => {
+                    const select = document.getElementById('quote-mueble-select');
+                    const qtyInput = document.getElementById('quote-qty');
+                    const selectedOpt = select.options[select.selectedIndex];
+
+                    if(!select.value) return alert("Seleccione un mueble");
+
+                    const price = parseFloat(selectedOpt.dataset.price);
+                    const qty = parseInt(qtyInput.value);
+                    const name = selectedOpt.dataset.name;
+                    const subtotal = price * qty;
+
+                    cart.push({ id: select.value, name, price, qty, subtotal });
+                    renderCart();
+                });
+
+                function renderCart(){
+                    itemsBody.innerHTML = cart.map((item, idx) => `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.qty}</td>
+                            <td>$${Math.round(item.price)}</td>
+                            <td>$${item.subtotal.toFixed(0)}</td>
+                            <td><button onclick="window.removeItem(${idx})" style="color:red;border:none;background:none;cursor:pointer">✕</button></td>
+                        </tr>
+                    `).join('');
+                    
+                    const total = cart.reduce((acc, item) => acc + item.subtotal, 0);
+                    totalSpan.textContent = total.toFixed(0);
+                }
+
+                window.removeItem = (idx) => {
+                    cart.splice(idx, 1);
+                    renderCart();
+                };
+
+                // 4. Guardar Cotización
+                document.getElementById('btn-save-quote').addEventListener('click', async () => {
+                    if(cart.length === 0) return alert("Agregue productos a la cotización");
+                    
+                    const total = parseFloat(totalSpan.textContent);
+                    const fecha = new Date(document.getElementById('quote-date').value).toISOString();
+                    const cliente = document.getElementById('quote-client').value;
+
+                    const payload = {
+                        fecha: fecha,
+                        total: total,
+                        estado: 'Pendiente',
+                        cliente: cliente,
+                        items: cart
+                    };
+
+                    try {
+                        const baseUrl = getBaseUrl();
+                        const res = await fetch(baseUrl + '/api/cotizaciones', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(payload)
+                        });
+                        if(res.ok){
+                            alert('Cotización creada exitosamente!');
+                            closePanel();
+                        } else {
+                            alert('Error guardando cotización');
+                        }
+                    } catch(e){
+                        console.error(e);
+                        alert('Error de conexión');
+                    }
+                });
+            });
             
             // Setup form handlers for create/cancel buttons
             function setupFormHandlers(type){
@@ -535,6 +753,136 @@
                 }
             }
             
+            // --- Funciones para Edición en Línea (Inline Edit) ---
+            function setupTableActions(type) {
+                const table = document.querySelector('#panel-body table');
+                if (!table) return;
+
+                table.addEventListener('click', async (e) => {
+                    const target = e.target;
+                    if(target.tagName === 'BUTTON') e.preventDefault();
+                    if (target.classList.contains('action-edit')) {
+                        const tr = target.closest('tr');
+                        makeRowEditable(tr, type);
+                    } else if (target.classList.contains('action-save')) {
+                        const tr = target.closest('tr');
+                        await saveRowChanges(tr, type);
+                    } else if (target.classList.contains('action-cancel-edit')) {
+                        if (type === 'muebles') loadAndShowMuebles();
+                        else if (type === 'variantes') loadAndShowVariantes();
+                        else if (type === 'cotizaciones') loadAndShowCotizaciones();
+                    }
+                });
+            }
+
+            function makeRowEditable(tr, type) {
+                const cells = tr.querySelectorAll('td');
+                const id = cells[0].innerText.trim();
+
+                if (type === 'muebles') {
+                    // Nombre(1), Tipo(2), Precio(3), Stock(4), Activo(5), Material(6)
+                    cells[1].innerHTML = `<input class="form-input" value="${cells[1].innerText}">`;
+                    cells[2].innerHTML = `<input class="form-input" value="${cells[2].innerText}">`;
+                    const precio = cells[3].innerText.replace('$','').trim();
+                    cells[3].innerHTML = `<input type="number" step="1" class="form-input" value="${precio}">`;
+                    cells[4].innerHTML = `<input type="number" class="form-input" value="${cells[4].innerText}">`;
+                    const activo = cells[5].querySelector('.pill').innerText.includes('✓');
+                    cells[5].innerHTML = `
+                        <select class="form-input">
+                            <option value="true" ${activo ? 'selected' : ''}>Sí</option>
+                            <option value="false" ${!activo ? 'selected' : ''}>No</option>
+                        </select>`;
+                    cells[6].innerHTML = `<input class="form-input" value="${cells[6].innerText}">`;
+                    
+                    cells[7].innerHTML = `
+                        <button class="action-btn action-confirm action-save" data-id="${id}">Confirmar</button>
+                        <button class="action-btn action-del action-cancel-edit">Cancelar</button>
+                    `;
+                } else if (type === 'variantes') {
+                    // Nombre(1), Precio(2)
+                    cells[1].innerHTML = `<input class="form-input" value="${cells[1].innerText}">`;
+                    const precio = cells[2].innerText.replace('$','').trim();
+                    cells[2].innerHTML = `<input type="number" step="1" class="form-input" value="${precio}">`;
+                    
+                    cells[3].innerHTML = `
+                        <button class="action-btn action-confirm action-save" data-id="${id}">Confirmar</button>
+                        <button class="action-btn action-del action-cancel-edit">Cancelar</button>
+                    `;
+                } else if (type === 'cotizaciones') {
+                    // Fecha(1) NO, Total(2), Estado(3)
+                    const total = cells[2].innerText.replace('$','').trim();
+                    cells[2].innerHTML = `<input type="number" step="1" class="form-input" value="${total}">`;
+                    const estado = cells[3].innerText;
+                    cells[3].innerHTML = `
+                        <select class="form-input">
+                            <option value="Pendiente" ${estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="Confirmada" ${estado === 'Confirmada' ? 'selected' : ''}>Confirmada</option>
+                            <option value="Cancelada" ${estado === 'Cancelada' ? 'selected' : ''}>Cancelada</option>
+                        </select>`;
+                    
+                    cells[4].innerHTML = `
+                        <button class="action-btn action-confirm action-save" data-id="${id}">Confirmar</button>
+                        <button class="action-btn action-del action-cancel-edit">Cancelar</button>
+                    `;
+                }
+            }
+
+            async function saveRowChanges(tr, type) {
+                const saveBtn = tr.querySelector('.action-save');
+                const id = saveBtn.dataset.id;
+                const cells = tr.querySelectorAll('td');
+                const baseUrl = getBaseUrl();
+                let data = {};
+
+                saveBtn.disabled = true;
+                saveBtn.innerText = '...';
+
+                try {
+                    // Fetch current data first to merge (safer for partial updates)
+                    try {
+                        const currentRes = await fetch(`${baseUrl}/api/${type}/${id}`);
+                        if(currentRes.ok) {
+                            data = await currentRes.json();
+                        }
+                    } catch (e) {
+                        console.warn('Error fetching current data:', e);
+                    }
+
+                    if (type === 'muebles') {
+                        data.nombre = cells[1].querySelector('input').value;
+                        data.tipo = cells[2].querySelector('input').value;
+                        data.precio_base = parseFloat(cells[3].querySelector('input').value);
+                        data.stock = parseInt(cells[4].querySelector('input').value);
+                        data.activo = cells[5].querySelector('select').value === 'true';
+                        data.material = cells[6].querySelector('input').value;
+                    } else if (type === 'variantes') {
+                        data.nombre_variante = cells[1].querySelector('input').value;
+                        data.precio_adicional = parseFloat(cells[2].querySelector('input').value);
+                    } else if (type === 'cotizaciones') {
+                        data.total = parseFloat(cells[2].querySelector('input').value);
+                        data.estado = cells[3].querySelector('select').value;
+                    }
+
+                    const response = await fetch(`${baseUrl}/api/${type}/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    alert('Actualizado correctamente');
+                    
+                    if (type === 'muebles') loadAndShowMuebles();
+                    else if (type === 'variantes') loadAndShowVariantes();
+                    else if (type === 'cotizaciones') loadAndShowCotizaciones();
+                } catch(err) {
+                    console.error(err);
+                    alert('Error al actualizar: ' + err.message);
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'Confirmar';
+                }
+            }
+
             // Submit form data to backend
             async function submitFormData(type, fields){
                 const baseUrl = getBaseUrl();
