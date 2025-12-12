@@ -3,7 +3,6 @@ package com.ev2.muebleria.Modelos;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Table;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Column;
 
 @Entity
@@ -21,7 +21,7 @@ public class Cotizacion {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_contizacion")
+    @Column(name = "id_cotizacion")
     private Long id_cotizacion;
 
     @Enumerated(EnumType.STRING)
@@ -67,6 +67,11 @@ public class Cotizacion {
     }
     public void setDetalles(List<DetalleCotizacion> detalles) {
         this.detalles = detalles;
+        if (detalles != null) {
+            for (DetalleCotizacion detalle : detalles) {
+                detalle.setCotizacion(this);
+            }
+        }
     }
 
     public void calcularTotal() {
@@ -85,6 +90,13 @@ public class Cotizacion {
 
     public Double getCalculoTotal() {
         return calculoTotal;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.fecha_cotizacion == null) {
+            this.fecha_cotizacion = LocalDateTime.now();
+        }
     }
 
 }

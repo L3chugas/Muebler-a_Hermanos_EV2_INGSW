@@ -283,6 +283,7 @@
             const panelBody = document.getElementById('panel-body');
             const closeBtn = document.getElementById('panel-close');
 
+            // --- CONFIGURACIÓN DE ENTORNO ---
             // Función para detectar la URL del Backend automáticamente
             function getBaseUrl() {
                 // MODO LOCAL: Si abres el archivo directo (file://) -> Usa el puerto dinámico de env.js
@@ -297,6 +298,7 @@
                 return window.location.protocol + '//' + window.location.hostname + ':' + (window.BACKEND_PORT || 8080);
             }
 
+            // --- GESTIÓN DEL PANEL DESLIZANTE (UI) ---
             function openPanel(title, html){
                 panelTitle.textContent = title;
                 if(html) panelBody.innerHTML = html;
@@ -308,13 +310,15 @@
                 panel.setAttribute('aria-hidden','true');
             }
 
-            // function to build muebles table from API data
+            // --- CARGA DE DATOS: MUEBLES ---
+            // Obtiene la lista de muebles del backend y construye la tabla HTML
             async function loadAndShowMuebles(){
                 const purple = getComputedStyle(document.documentElement).getPropertyValue('--purple').trim() || '#7b2bd4';
                 panel.style.setProperty('--panel-accent', purple);
                 
                 try {
                     const baseUrl = getBaseUrl();
+                    // INTERACCIÓN BACKEND: GET - Obtener lista de muebles
                     const response = await fetch(baseUrl + '/api/muebles');
                     
                     if(!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -388,12 +392,14 @@
                 }
             }
 
-            // function to build variantes table from API data
+            // --- CARGA DE DATOS: VARIANTES ---
+            // Obtiene las variantes (modificaciones de muebles) y las muestra
             async function loadAndShowVariantes(){
                 panel.style.setProperty('--panel-accent', '#0CF9AD');
                 
                 try {
                     const baseUrl = getBaseUrl();
+                    // INTERACCIÓN BACKEND: GET - Obtener lista de variantes
                     const response = await fetch(baseUrl + '/api/variantes');
                     
                     if(!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -451,7 +457,8 @@
                 }
             }
 
-            // function to build cotizaciones table from API data
+            // --- CARGA DE DATOS: COTIZACIONES ---
+            // Muestra el historial de cotizaciones y permite cambiar estados
             async function loadAndShowCotizaciones(){
                 const cotCard = document.querySelector('.card--cotizaciones');
                 const cotBg = cotCard ? getComputedStyle(cotCard).backgroundColor : '#f2a1b6';
@@ -459,6 +466,7 @@
                 
                 try {
                     const baseUrl = getBaseUrl();
+                    // INTERACCIÓN BACKEND: GET - Obtener historial de cotizaciones
                     const response = await fetch(baseUrl + '/api/cotizaciones');
                     
                     if(!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -467,17 +475,16 @@
                     
                     const rows = cotizaciones.map(c => {
                         const actions = [];
-                        if(c.estado === 'Pendiente'){
+                        // Normalizamos: Si el estado es null, undefined o vacío, asumimos 'Pendiente'
+                        const estadoActual = c.estado ? c.estado.trim() : 'PENDIENTE';
+
+                        if(estadoActual === 'PENDIENTE'){
                             actions.push(`<button class="action-btn action-confirm" data-id="${c.id_cotizacion}" data-action="confirm">Confirmar</button>`);
-                        }
-                        actions.push(`<button class="action-btn action-del" data-id="${c.id_cotizacion}" data-action="cancel">Cancelar</button>`);
-                        if(c.estado !== 'Confirmada'){
-                            actions.push(`<button class="action-btn action-edit" data-id="${c.id_cotizacion}" data-action="edit">Editar</button>`);
+                            actions.push(`<button class="action-btn action-del" data-id="${c.id_cotizacion}" data-action="cancel">Cancelar</button>`);
                         }
 
                         let fechaStr = 'N/A';
                         if (c.fecha_cotizacion) {
-                            // Si es un array [yyyy, mm, dd, ...] (formato por defecto de LocalDateTime)
                             if (Array.isArray(c.fecha_cotizacion) && c.fecha_cotizacion.length >= 3) {
                                 const [anio, mes, dia] = c.fecha_cotizacion;
                                 fechaStr = new Date(anio, mes - 1, dia).toLocaleDateString('es-ES');
@@ -492,7 +499,7 @@
                                 <td>${c.id_cotizacion || 'N/A'}</td>
                                 <td>${fechaStr}</td>
                                 <td>$${(c.calculoTotal || 0).toFixed(0)}</td>
-                                <td>${c.estado || 'Pendiente'}</td>
+                                <td>${estadoActual}</td>
                                 <td>${actions.join('')}</td>
                             </tr>`;
                     }).join('\n');
@@ -500,22 +507,6 @@
                     const cotizacionesHtml = `
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                             <div></div>
-                            <button class="create-btn--accent" data-show="form-cotizaciones">Crear Cotización</button>
-                        </div>
-                        <div id="form-cotizaciones" style="display:none;background:#f9f9f9;padding:12px;border-radius:6px;margin-bottom:12px;border:1px solid #e0e0e0;">
-                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
-                                <input type="date" class="form-input" placeholder="Fecha" data-field="fecha" />
-                                <input type="number" class="form-input" placeholder="Total" data-field="total" step="1" />
-                                <select class="form-input" data-field="estado">
-                                    <option value="Pendiente">Pendiente</option>
-                                    <option value="Confirmada">Confirmada</option>
-                                    <option value="Cancelada">Cancelada</option>
-                                </select>
-                            </div>
-                            <div style="display:flex;gap:8px;margin-top:12px;">
-                                <button class="submit-btn" data-action="submit-cotizaciones" style="flex:1;background:#f2a1b6;color:#000;border:none;padding:8px;border-radius:4px;cursor:pointer;">Guardar</button>
-                                <button class="cancel-btn" data-action="cancel" style="flex:1;background:#ccc;border:none;padding:8px;border-radius:4px;cursor:pointer;">Cancelar</button>
-                            </div>
                         </div>
                         <table class="admin-table" aria-describedby="panel-title">
                             <thead>
@@ -542,7 +533,7 @@
                 }
             }
 
-            // handlers for cards
+            // --- EVENT LISTENERS PARA EL MENÚ PRINCIPAL ---
             document.querySelectorAll('.card[role="button"]').forEach(el=>{
                 el.addEventListener('click', ()=>{
                     const target = el.getAttribute('data-panel');
@@ -557,9 +548,10 @@
                 el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') el.click(); });
             });
 
-            // --- Lógica del Botón Gigante (Nueva Funcionalidad) ---
+            // --- LÓGICA DEL GENERADOR DE COTIZACIONES (Botón Gigante) ---
             const btnGenerar = document.getElementById('btn-generar');
             btnGenerar.addEventListener('click', async () => {
+                let allVariantes = [];
                 // 1. Mostrar estructura base de cotización
                 const cotizadorHtml = `
                     <div class="quote-grid">
@@ -584,6 +576,7 @@
                                     <tr>
                                         <th>Producto</th>
                                         <th>Cant.</th>
+                                        <th>Variante</th>
                                         <th>Precio Unit.</th>
                                         <th>Subtotal</th>
                                         <th></th>
@@ -595,14 +588,6 @@
                         
                         <div class="quote-summary">
                             <h3>Resumen</h3>
-                            <div style="margin-bottom:10px;">
-                                <label>Cliente</label>
-                                <input type="text" class="form-input" placeholder="Nombre del cliente" id="quote-client">
-                            </div>
-                            <div style="margin-bottom:10px;">
-                                <label>Fecha</label>
-                                <input type="date" class="form-input" value="${new Date().toISOString().split('T')[0]}" id="quote-date">
-                            </div>
                             <hr style="border:0; border-top:1px solid #ddd; margin: 20px 0;">
                             <div class="total-display">Total: $<span id="quote-total">0.00</span></div>
                             <button id="btn-save-quote" class="btn-big-action" style="font-size:18px; padding:12px; margin-top:20px; border-width:2px;">Confirmar Cotización</button>
@@ -617,9 +602,15 @@
                 // 2. Cargar datos de muebles desde API para llenar el Select
                 try {
                     const baseUrl = getBaseUrl();
-                    const res = await fetch(baseUrl + '/api/muebles');
-                    if(res.ok){
-                        const muebles = await res.json();
+                    // INTERACCIÓN BACKEND: GET - Cargar datos auxiliares (Muebles y Variantes) para el formulario
+                    const [resMuebles, resVariantes] = await Promise.all([
+                        fetch(baseUrl + '/api/muebles'),
+                        fetch(baseUrl + '/api/variantes')
+                    ]);
+                    if(resMuebles.ok && resVariantes.ok){
+                        const muebles = await resMuebles.json();
+                        allVariantes = await resVariantes.json();
+
                         const select = document.getElementById('quote-mueble-select');
                         select.innerHTML = '<option value="">Seleccione un mueble...</option>';
                         muebles.forEach(m => {
@@ -650,25 +641,54 @@
                     const name = selectedOpt.dataset.name;
                     const subtotal = price * qty;
 
-                    cart.push({ id: select.value, name, price, qty, subtotal });
+                    cart.push({ id: select.value, name, price, qty, subtotal, variant: null });
                     renderCart();
                 });
 
                 function renderCart(){
-                    itemsBody.innerHTML = cart.map((item, idx) => `
+                    itemsBody.innerHTML = cart.map((item, idx) => {
+                        // Mostrar todas las variantes del sistema
+                        const misVariantes = allVariantes;
+                        
+                        let options = '<option value="">-- Sin variante --</option>';
+                        misVariantes.forEach(v => {
+                            const isSel = item.variant && item.variant.id_variante === v.id_variante ? 'selected' : '';
+                            options += `<option value="${v.id_variante}" ${isSel}>${v.nombre_variante} (+$${Math.round(v.precio_adicional)})</option>`;
+                        });
+
+                        return `
                         <tr>
                             <td>${item.name}</td>
                             <td>${item.qty}</td>
+                            <td>
+                                <select class="form-input" style="padding:4px" onchange="window.updateCartVariant(${idx}, this.value)">
+                                    ${options}
+                                </select>
+                            </td>
                             <td>$${Math.round(item.price)}</td>
                             <td>$${item.subtotal.toFixed(0)}</td>
                             <td><button onclick="window.removeItem(${idx})" style="color:red;border:none;background:none;cursor:pointer">✕</button></td>
                         </tr>
-                    `).join('');
+                    `}).join('');
                     
                     const total = cart.reduce((acc, item) => acc + item.subtotal, 0);
                     totalSpan.textContent = total.toFixed(0);
                 }
 
+                window.updateCartVariant = (idx, variantId) => {
+                    const item = cart[idx];
+                    if (!variantId) {
+                        item.variant = null;
+                    } else {
+                        item.variant = allVariantes.find(v => v.id_variante == variantId);
+                    }
+                    
+                    const variantPrice = item.variant ? item.variant.precio_adicional : 0;
+                    item.subtotal = (item.price + variantPrice) * item.qty;
+                    renderCart();
+                };
+
+                // Eliminar item del carrito
                 window.removeItem = (idx) => {
                     cart.splice(idx, 1);
                     renderCart();
@@ -678,20 +698,25 @@
                 document.getElementById('btn-save-quote').addEventListener('click', async () => {
                     if(cart.length === 0) return alert("Agregue productos a la cotización");
                     
-                    const total = parseFloat(totalSpan.textContent);
-                    const fecha = new Date(document.getElementById('quote-date').value).toISOString();
-                    const cliente = document.getElementById('quote-client').value;
+                    // IMPORTANTE: Recalcular el total exacto sumando los items.
+                    // Usar totalSpan.textContent causaba error porque .toFixed(0) eliminaba los decimales.
+                    const exactTotal = cart.reduce((acc, item) => acc + item.subtotal, 0);
 
                     const payload = {
-                        fecha: fecha,
-                        total: total,
+                        fecha_cotizacion: new Date().toISOString().split('T')[0],
+                        total: exactTotal,
                         estado: 'Pendiente',
-                        cliente: cliente,
-                        items: cart
+                        detalles: cart.map(i => ({
+                            mueble: { id_mueble: parseInt(i.id) },
+                            cantidad: parseInt(i.qty),
+                            subtotal: parseFloat(i.subtotal),
+                            variante: i.variant ? { id_variante: parseInt(i.variant.id_variante) } : null
+                        }))
                     };
 
                     try {
                         const baseUrl = getBaseUrl();
+                        // INTERACCIÓN BACKEND: POST - Guardar la nueva cotización en la base de datos
                         const res = await fetch(baseUrl + '/api/cotizaciones', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
@@ -701,7 +726,8 @@
                             alert('Cotización creada exitosamente!');
                             closePanel();
                         } else {
-                            alert('Error guardando cotización');
+                            const errorText = await res.text();
+                            alert('Error guardando cotización: ' + errorText);
                         }
                     } catch(e){
                         console.error(e);
@@ -710,7 +736,7 @@
                 });
             });
             
-            // Setup form handlers for create/cancel buttons
+            // --- MANEJO DE FORMULARIOS DE CREACIÓN ---
             function setupFormHandlers(type){
                 const formId = `form-${type}`;
                 const form = document.getElementById(formId);
@@ -753,7 +779,7 @@
                 }
             }
             
-            // --- Funciones para Edición en Línea (Inline Edit) ---
+            // --- FUNCIONES PARA EDICIÓN EN LÍNEA (TABLAS) ---
             function setupTableActions(type) {
                 const table = document.querySelector('#panel-body table');
                 if (!table) return;
@@ -761,13 +787,80 @@
                 table.addEventListener('click', async (e) => {
                     const target = e.target;
                     if(target.tagName === 'BUTTON') e.preventDefault();
-                    if (target.classList.contains('action-edit')) {
+                    
+                    const baseUrl = getBaseUrl();
+
+                    // 1. Lógica para CONFIRMAR Cotización (Solo si es Pendiente)
+                    if (target.classList.contains('action-confirm') && !target.classList.contains('action-save')) {
+                        if(!confirm('¿Deseas confirmar esta cotización?')) return;
+                        
+                        const id = target.dataset.id;
+                        try {
+                            // Obtenemos la cotización actual
+                            const resGet = await fetch(`${baseUrl}/api/${type}/${id}`);
+                            if(resGet.ok){
+                                const data = await resGet.json();
+                                data.estado = 'Confirmada'; // Cambiamos estado
+                                
+                                // Enviamos actualización (PUT)
+                                const resPut = await fetch(`${baseUrl}/api/${type}/${id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(data)
+                                });
+                                if(resPut.ok) loadAndShowCotizaciones();
+                                else alert('Error al confirmar la cotización.');
+                            }
+                        } catch(err) { console.error(err); alert('Error de conexión.'); }
+                    }
+                    
+                    // 2. Lógica para ELIMINAR o CANCELAR
+                    else if (target.classList.contains('action-del') && !target.classList.contains('action-cancel-edit')) {
+                        const id = target.dataset.id;
+                        
+                        // Caso Cotizaciones: "Cancelar" significa cambiar estado a Cancelada
+                        if (type === 'cotizaciones') {
+                            if(!confirm('¿Deseas cancelar esta cotización?')) return;
+                            try {
+                                const resGet = await fetch(`${baseUrl}/api/${type}/${id}`);
+                                if(resGet.ok){
+                                    const data = await resGet.json();
+                                    data.estado = 'Cancelada';
+                                    const resPut = await fetch(`${baseUrl}/api/${type}/${id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(data)
+                                    });
+                                    if(resPut.ok) loadAndShowCotizaciones();
+                                    else alert('Error al cancelar la cotización.');
+                                }
+                            } catch(err) { console.error(err); alert('Error de conexión.'); }
+                        } 
+                        // Caso Muebles/Variantes: Eliminar físicamente (DELETE)
+                        else {
+                            if(!confirm('¿Eliminar este registro permanentemente?')) return;
+                            try {
+                                const res = await fetch(`${baseUrl}/api/${type}/${id}`, { method: 'DELETE' });
+                                if(res.ok) {
+                                    if (type === 'muebles') loadAndShowMuebles();
+                                    else if (type === 'variantes') loadAndShowVariantes();
+                                } else alert('Error al eliminar el registro.');
+                            } catch(err) { console.error(err); alert('Error de conexión.'); }
+                        }
+                    }
+
+                    // Acción: Editar (Convierte texto a inputs)
+                    else if (target.classList.contains('action-edit')) {
                         const tr = target.closest('tr');
                         makeRowEditable(tr, type);
-                    } else if (target.classList.contains('action-save')) {
+                    } 
+                    // Acción: Guardar cambios (PUT al backend)
+                    else if (target.classList.contains('action-save')) {
                         const tr = target.closest('tr');
                         await saveRowChanges(tr, type);
-                    } else if (target.classList.contains('action-cancel-edit')) {
+                    } 
+                    // Acción: Cancelar edición (Recarga la tabla original)
+                    else if (target.classList.contains('action-cancel-edit')) {
                         if (type === 'muebles') loadAndShowMuebles();
                         else if (type === 'variantes') loadAndShowVariantes();
                         else if (type === 'cotizaciones') loadAndShowCotizaciones();
@@ -775,6 +868,7 @@
                 });
             }
 
+            // Transforma las celdas de una fila en campos de entrada (inputs)
             function makeRowEditable(tr, type) {
                 const cells = tr.querySelectorAll('td');
                 const id = cells[0].innerText.trim();
@@ -827,6 +921,7 @@
                 }
             }
 
+            // Recopila datos de los inputs y envía actualización al servidor
             async function saveRowChanges(tr, type) {
                 const saveBtn = tr.querySelector('.action-save');
                 const id = saveBtn.dataset.id;
@@ -838,8 +933,8 @@
                 saveBtn.innerText = '...';
 
                 try {
-                    // Fetch current data first to merge (safer for partial updates)
                     try {
+                        // INTERACCIÓN BACKEND: GET - Obtener datos actuales del registro antes de editar
                         const currentRes = await fetch(`${baseUrl}/api/${type}/${id}`);
                         if(currentRes.ok) {
                             data = await currentRes.json();
@@ -863,6 +958,7 @@
                         data.estado = cells[3].querySelector('select').value;
                     }
 
+                    // INTERACCIÓN BACKEND: PUT - Actualizar el registro con los nuevos datos
                     const response = await fetch(`${baseUrl}/api/${type}/${id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -883,7 +979,7 @@
                 }
             }
 
-            // Submit form data to backend
+            // --- ENVÍO DE DATOS (POST) PARA NUEVOS REGISTROS ---
             async function submitFormData(type, fields){
                 const baseUrl = getBaseUrl();
                 const endpoints = {
@@ -893,6 +989,7 @@
                 };
                 
                 try {
+                    // INTERACCIÓN BACKEND: POST - Crear un nuevo registro (Mueble, Variante, etc.)
                     const response = await fetch(baseUrl + endpoints[type], {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
