@@ -1,80 +1,109 @@
-# 🪑 Sistema de Gestión - Mueblería "Los Muebles Hermanos S.A."
+# 🪑 Mueblería Hermanos S.A. - Sistema de Gestión Full Stack
 
-## 📄 Descripción del Proyecto
-Este proyecto es un Backend desarrollado en **Spring Boot** para gestionar el inventario y las ventas de una mueblería. El sistema permite administrar un catálogo de muebles con variantes (materiales, tamaños), crear cotizaciones (carrito de compras) y procesar ventas finales controlando estrictamente el stock disponible.
+> **Evaluación 3 - Ingeniería de Software**
+> Universidad del Bío-Bío | Facultad de Ciencias Empresariales
 
-El objetivo principal de esta evaluación fue conectar una API REST con **MySQL**, implementar patrones de diseño de software y realizar pruebas unitarias con **JUnit**.
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-green)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue)
+![Frontend](https://img.shields.io/badge/Frontend-Vanilla_JS-yellow)
 
----
+## 📖 Descripción
 
-## 🛠️ Stack Tecnológico y Dependencias
-El proyecto utiliza las siguientes tecnologías y dependencias clave:
+Sistema integral para la gestión comercial de una mueblería. El proyecto evoluciona una API REST tradicional hacia una arquitectura **Full Stack Containerizada**. Permite la administración de inventario (muebles y variantes), la generación dinámica de cotizaciones y la confirmación de ventas con control estricto de stock en tiempo real.
 
-* **Java 21**: Lenguaje de programación principal.
-* **Spring Boot 3.x**: Framework base.
-    * `Spring Web`: Para la creación de la API REST y los controladores.
-    * `Spring Data JPA`: Para la persistencia de datos y el patrón Repositorio (ORM).
-    * `Spring Boot DevTools`: Para facilitar el desarrollo con reinicio automático.
-* **MySQL Driver**: Conector JDBC para la comunicación con la base de datos MySQL (XAMPP).
-* **JUnit 5**: Framework para la ejecución de pruebas unitarias y de integración.
-* **Maven**: Gestor de dependencias y construcción del proyecto.
+El despliegue está orquestado completamente con **Docker**, separando el Frontend (Nginx), Backend (Spring Boot) y Base de Datos (MySQL) en microservicios aislados.
 
 ---
 
-## 🚀 Guía de Instalación y Ejecución
+## 🚀 Características Principales
 
-### 1. Requisitos Previos
-Asegúrese de tener instalado:
-* Java JDK 17 o 21.
-* MySQL (XAMPP, Workbench o Docker) corriendo en el puerto `3306`.
-* Postman (para probar los endpoints).
+* **Gestión de Catálogo:** CRUD para muebles con atributos específicos (Material, Tamaño, Stock).
+* **Sistema de Variantes:** Manejo de modificaciones de productos (ej. Barnices, Cojines) que alteran el precio final dinámicamente.
+* **Cotizador Interactivo:** Interfaz gráfica para generar cotizaciones con múltiples ítems y cálculos automáticos.
+* **Control de Stock Transaccional:** Validación lógica que impide la venta si el stock es insuficiente al momento de confirmar la cotización.
+* **Arquitectura SPA:** Frontend ligero construido con Vanilla JS, sin frameworks pesados, consumiendo la API de forma asíncrona.
+* **Dockerizado:** Entorno reproducible con `docker-compose`.
 
-### 2. Configuración de Base de Datos
-1.  Abra XAMPP y activar los modulos de Apache y MySQL
-2.  Ingrese a phpMyAdmin de forma local
-3.  Importe el archivo “mebles_hermanos.sql” con tal de obtener la base de datos
+---
 
-### 3. Ejecutar la Aplicación
-1.  Extraiga el archivo “Muebleria_Hermanos_EV2_INGSW.rar”
-2.  Abra en un IDE la carpeta obtenida anteriormente (opcional)
-3.  Ingresese a la ruta “Muebleria_Hermanos_EV2_INGSW\mueblería\src\main\java\com\ev2\muebleria” y ejecutar y/o compilar el archivo “MuebleriaApplication,java”
-4.  Al correr el programa, ponga atención al puerto en donde se ejecutó el proyecto, este número se encuentra en las últimas líneas de la consola
+## 🛠️ Stack Tecnológico
 
-### 4. Utilizar el programa
-1.  Abra Postman
-2.  En la barra de direcciones ingrese "http://localhost:"puerto"/api/" y puede comenzar a interactuar con el programa mediante muebles y cotizaciones
+### Backend
+* **Lenguaje:** Java 21 (JDK)
+* **Framework:** Spring Boot 3.x (Web, Data JPA)
+* **Testing:** JUnit 5 & Mockito
+* **Build Tool:** Gradle
 
-### 5. Comandos importantes
-1.  GET   http://localhost:"puerto"/api/muebles
-2.  POST  http://localhost:"puerto"/api/muebles
-3.  Se ingresan muebles con el formato {
-  "nombre": "mesedora marca acme",
-  "tipo": "Mesedora",
-  "precio_base": 60000.0,
-  "stock": 5,
-  "estado_activo": true,
-  "dimension": "GRANDE",
-  "material": "Madera"
-}
-5. POST  http://localhost:"puerto"/api/variantes 
-   {
-  "nombre_variante": "Premium",
-  "precio_adicional": 25.0
-}
-7. GET   http://localhost:"puerto"/api/variantes  
-8. GET   http://localhost:"puerto"/api/cotizaciones
-9. POST  http://localhost:"puerto"/api/cotizaciones
-    {
-  "detalles": [
-    {
-      "mueble": { "id_mueble": 1 },
-      "variante": { "id_variante": 1 },
-      "cantidad": 2
-    },
-    {
-      "mueble": { "id_mueble": 2 },
-      "cantidad": 1
-    }
-]
+### Frontend
+* **Core:** HTML5, CSS3, JavaScript (ES6+)
+* **Servidor Web:** Nginx (Alpine Linux)
 
-10. POST  http://localhost:51246/api/cotizaciones/1/confirmar para marcar una cotización como pagada
+### Infraestructura & Datos
+* **Base de Datos:** MySQL 8.0
+* **Contenedores:** Docker & Docker Compose
+* **Herramientas Extra:** PhpMyAdmin (Gestión BD), MailHog (SMTP Mock)
+
+---
+
+## 🏗️ Arquitectura
+
+El sistema utiliza una arquitectura de microservicios simplificada:
+
+```mermaid
+graph LR
+    A[Cliente Web] -- Puerto 3000 --> B[Nginx Frontend]
+    B -- Fetch API / JSON --> C[Spring Boot Backend]
+    C -- Puerto 3306 --> D[(MySQL Database)]
+``````
+
+## 📖 Guía de Uso
+
+Siga estos pasos para ejecutar el proyecto correctamente en su entorno local.
+
+### 1. Configuración de Base de Datos
+Para asegurar la persistencia y carga inicial de datos:
+
+1.  Extraiga el archivo `Muebleria_Hermanos_EV2_INGSW.rar`.
+2.  Abra **XAMPP** y active los módulos de **Apache** y **MySQL**.
+3.  Ingrese a **phpMyAdmin** de forma local (usualmente `http://localhost/phpmyadmin`).
+4.  Importe el archivo `muebles_hermanos.sql` (ubicado en la carpeta del proyecto) para generar la base de datos y sus tablas.
+
+### 2. Ejecutar la Aplicación
+El despliegue de la aplicación se realiza mediante contenedores:
+
+1.  Abra el programa **Docker Desktop** y asegúrese de que el motor esté corriendo.
+2.  Abra su terminal o consola de comandos.
+3.  Navegue hasta la ruta raíz del backend donde se encuentra el archivo `docker-compose.yml`.
+    ```bash
+    cd "ruta/a/Muebleria_Hermanos_EV2_INGSW/muebleria"
+    ```
+
+### 3. Utilizar el Programa
+Una vez situado en la carpeta correcta:
+
+1.  Ejecute el siguiente comando para levantar los servicios:
+    ```bash
+    docker compose up -d
+    ```
+    *(Espere unos instantes a que los contenedores se inicien correctamente)*.
+
+2.  Abra el Frontend ingresando a la siguiente dirección en su navegador (testeado en Firefox):
+    * 👉 **http://localhost:3000/**
+
+¡Listo! Ya puede empezar a ejecutar y probar el programa.
+
+---
+
+### 🛑 Cerrar la Aplicación
+
+Para detener y eliminar los contenedores creados, ejecute en la terminal:
+
+```bash
+docker compose down
+```
+
+### Otros accesos:
+* 👉 **Frontend http://localhost:3000 Interfaz de Usuario (Cliente y Admin)**
+* 👉 **API Backend http://localhost:8090/api/muebles Endpoints REST directos**
+* 👉 **PhpMyAdmin http://localhost:8081 Gestión visual de la BD**
